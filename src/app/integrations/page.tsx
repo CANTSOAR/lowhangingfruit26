@@ -25,7 +25,7 @@ export default async function Integrations() {
       <Card>
         <CardHeader
           title={<span className="flex items-center gap-2"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5 text-brand-600"><path d="m9 15 6-6M7 17l-1 1a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0M17 7l1-1a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0" transform="translate(1 0) scale(.92)" /></svg>Connect an assistant</span>}
-          subtitle="Personal access keys for the episode API and MCP endpoint."
+          subtitle="OAuth connections and read-only keys for your assistants."
         />
         <div className="space-y-5 p-5">
           <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 font-medium"><AssistantBrands /></div>
