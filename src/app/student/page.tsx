@@ -6,7 +6,7 @@ import When from "@/components/courses/When";
 import { Badge, Card, CardHeader, LinkButton, PageHeader } from "@/components/ui";
 import { recommend } from "@/lib/adaptive";
 import { requireUser } from "@/lib/auth";
-import { all, parse } from "@/lib/db";
+import { all, get, parse } from "@/lib/db";
 import { decodeEntities } from "@/lib/courses/save";
 import { describeSettings, feedbackUrl, heldAssignmentIds, publishedCaseCards, studentAssignments, studentCaseLabels, toDate, TYPE_LABEL, visitUrl } from "@/lib/courses";
 import { LEVEL_NAMES } from "@/lib/engine/difficulty";
@@ -15,8 +15,11 @@ import type { EncounterConfig, EncounterState } from "@/lib/types";
 
 const MODE_LABEL: Record<string, string> = { practice: "Practice", adaptive: "Adaptive", homework: "Homework", exam: "Exam", journey: "Care journey" };
 
-export default async function StudentHome() {
+export default async function StudentHome({ searchParams }: { searchParams: Promise<{ joined?: string | string[] }> }) {
   const user = await requireUser();
+  const joinedId = (await searchParams).joined;
+  // Only trusted when the viewer really is enrolled, so the banner cannot be made to name a course.
+  const joined = typeof joinedId === "string" ? get<{ name: string }>("SELECT co.name FROM courses co JOIN enrollments en ON en.course_id = co.id WHERE co.id = ? AND en.user_id = ?", joinedId, user.id) : undefined;
   const role = profession(user.profession_id);
   const rec = recommend(user.id, role.id);
   const recCard = rec.caseId ? publishedCaseCards().find((c) => c.id === rec.caseId) : null;
@@ -44,9 +47,22 @@ export default async function StudentHome() {
 
   return (
     <AppShell user={user}>
+      {joined && (
+        <div role="status" className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <div className="font-semibold">You joined {decodeEntities(joined.name)}</div>
+          <div className="mt-0.5 text-emerald-800">
+            {open.length ? `${open.length} assignment${open.length === 1 ? " is" : "s are"} waiting for you.` : "Your instructor has not set any assignments yet."}
+            {open.length > 0 && (
+              <a href="#assignments" className="ml-1.5 inline-block py-1 font-medium underline">
+                Go to assignments
+              </a>
+            )}
+          </div>
+        </div>
+      )}
       <PageHeader title={`Welcome, ${user.name.split(" ")[0]}`} subtitle={`You are practicing as ${role.name}.`} action={<LinkButton href="/student/practice" variant="secondary">Browse all patients</LinkButton>} />
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-5">
           {/* ---------- Adaptive session ---------- */}
           <Card className="border-brand-200">
@@ -90,7 +106,7 @@ export default async function StudentHome() {
           </Card>
 
           {/* ---------- Assignments ---------- */}
-          <Card>
+          <Card id="assignments" className="scroll-mt-4">
             <CardHeader title="Assignments" subtitle={assignments.length ? `${open.length} to do, ${doneAssignments.length} submitted` : undefined} />
             {assignments.length === 0 ? (
               <p className="px-4 py-6 text-sm text-slate-500">{courses.length ? "Your instructor has not set any assignments yet." : "Join a course with the code from your instructor to see your assignments here."}</p>

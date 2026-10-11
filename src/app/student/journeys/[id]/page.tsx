@@ -29,7 +29,7 @@ export default async function JourneyIntro({ params, searchParams }: { params: P
   return (
     <AppShell user={user}>
       <PageHeader title={heading.title} subtitle={heading.subtitle} action={<LinkButton href="/student/journeys" variant="secondary" size="sm">All care journeys</LinkButton>} />
-      <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div>
           <h2 className="mb-2 text-sm font-semibold text-slate-900">Choose the professional you will be</h2>
           <JoinButtons journeyId={j.row.id} assignmentId={assignment} stages={stages.map((s, i) => ({ ...s, suggested: s.suggested && i === firstSuggested }))} />

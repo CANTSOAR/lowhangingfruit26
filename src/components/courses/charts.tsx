@@ -108,7 +108,7 @@ const scale = (lo: number, hi: number) => (v: number) => Math.max(0, Math.min(10
 
 export function SkillDots({ items, ticks, lo, hi }: { items: SkillDot[]; ticks: LevelTick[]; lo: number; hi: number }) {
   const x = scale(lo, hi);
-  const cols = "grid grid-cols-[minmax(0,11rem)_minmax(0,1fr)_3rem] items-center gap-x-3 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)_3rem]";
+  const cols = "grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)_2.5rem] items-center gap-x-2 sm:gap-x-3 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)_3rem]";
   return (
     <div>
       <div className={`${cols} pb-1`}>
@@ -116,7 +116,8 @@ export function SkillDots({ items, ticks, lo, hi }: { items: SkillDot[]; ticks: 
         <div className="relative h-4">
           {ticks.map((t) => (
             <span key={t.level} className="absolute -translate-x-1/2 whitespace-nowrap text-[11px] tabular-nums text-slate-500" style={{ left: `${x(t.rating)}%` }}>
-              Level {t.level}
+              <span className="sm:hidden">L{t.level}</span>
+              <span className="hidden sm:inline">Level {t.level}</span>
             </span>
           ))}
         </div>

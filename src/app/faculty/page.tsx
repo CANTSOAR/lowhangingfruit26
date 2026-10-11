@@ -62,7 +62,7 @@ export default async function FacultyHome() {
         <Stat label="Live visits now" value={live} note="With live assist turned on" href="/faculty/live" />
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader title="Assignments due" subtitle="Due in the next two weeks or in the past week." />
           {due.length === 0 ? (

@@ -34,7 +34,7 @@ export default function StartVisit({
   }
   return (
     <span className="inline-flex flex-col items-end gap-1">
-      <Button variant={variant} size={size} onClick={start} disabled={busy}>
+      <Button variant={variant} size={size} onClick={start} disabled={busy} className="max-sm:min-h-10">
         {busy ? "Starting…" : label}
       </Button>
       {error && <span className="max-w-xs text-right text-xs text-rose-700">{error}</span>}

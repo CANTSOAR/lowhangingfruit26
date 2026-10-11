@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { logout } from "@/app/(auth)/actions";
 import { Logo } from "@/components/Brand";
+import DesktopNotice from "@/components/DesktopNotice";
 import { isFaculty } from "@/lib/auth";
 import { profession } from "@/lib/professions";
 import type { User } from "@/lib/types";
@@ -27,6 +28,7 @@ export default function AppShell({ user, children, wide }: { user: User; childre
   const nav = faculty ? FACULTY_NAV : STUDENT_NAV;
   return (
     <div className="min-h-full">
+      <DesktopNotice />
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4">
           <Link href={faculty ? "/faculty" : "/student"}>

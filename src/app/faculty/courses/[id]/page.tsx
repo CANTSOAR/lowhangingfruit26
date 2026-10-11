@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { JoinCode, RemoveStudent } from "@/components/courses/CourseTools";
+import ShareJoin from "@/components/courses/ShareJoin";
 import When from "@/components/courses/When";
 import { Badge, Card, CardHeader, Empty, LinkButton, PageHeader } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { all } from "@/lib/db";
+import { joinUrl, qrSvg, requestOrigin } from "@/lib/courses/join";
 import { assignmentOverviews, courseFor, describeSettings, TYPE_LABEL } from "@/lib/courses";
 import { profession } from "@/lib/professions";
 
@@ -29,6 +31,9 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
   ))
     best.set(r.user_id + ":" + r.assignment_id, r.s);
 
+  const link = joinUrl(await requestOrigin(), course.join_code);
+  const qr = await qrSvg(link);
+
   return (
     <AppShell user={user}>
       <div className="mb-2 text-xs text-slate-500">
@@ -43,7 +48,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         action={<LinkButton href={`/faculty/courses/${course.id}/assignments/new`}>New assignment</LinkButton>}
       />
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-5">
           <Card>
             <CardHeader title="Assignments" subtitle="Open one for its gradebook and class summary." />
@@ -139,6 +144,10 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
             <div className="p-4">
               <JoinCode courseId={course.id} code={course.join_code} />
             </div>
+          </Card>
+          <Card>
+            <CardHeader title="Share" subtitle="One scan: students create an account and land in this class." />
+            <ShareJoin link={link} qr={qr} code={course.join_code} />
           </Card>
           <Card>
             <CardHeader title={`Roster (${roster.length})`} />

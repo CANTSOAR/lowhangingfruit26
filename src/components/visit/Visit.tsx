@@ -127,6 +127,8 @@ export default function Visit({ id, viewerName }: { id: string; viewerName: stri
   const [messages, setMessages] = useState<Msg[]>([]);
   const [chart, setChart] = useState<ChartView | null>(null);
   const [fresh, setFresh] = useState<Set<string>>(new Set());
+  // Below lg the call and the chart cannot share the screen, so one is shown at a time.
+  const [mobileView, setMobileView] = useState<"call" | "chart">("call");
   const [input, setInput] = useState("");
   const [pending, setPending] = useState<string | null>(null); // patient reply being streamed
   const [busy, setBusy] = useState(false);
@@ -548,36 +550,46 @@ export default function Visit({ id, viewerName }: { id: string; viewerName: stri
   const firstName = p.name.split(" ")[0];
 
   return (
-    <div className="flex h-screen flex-col bg-slate-200">
+    <div className="flex h-screen flex-col bg-slate-200 max-lg:h-dvh">
       <audio ref={audioRef} onEnded={onAudioDone} onError={onAudioDone} hidden />
 
       {/* Top bar */}
-      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-slate-300 bg-white px-4 text-sm">
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-slate-300 bg-white px-3 text-sm sm:gap-3 sm:px-4">
         <a href="/"><Logo compact /></a>
-        <span className="text-slate-300">|</span>
+        <span className="hidden text-slate-300 sm:inline">|</span>
         <span className="truncate text-slate-700">
           Video visit with <span className="font-medium text-slate-900">{p.name}</span>
         </span>
-        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">{MODE_LABEL[data.mode] || data.mode}</span>
-        <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 sm:inline">Difficulty: Level {data.level}</span>
-        {data.visitNumber > 1 ? <span className="hidden rounded bg-sky-100 px-1.5 py-0.5 text-xs font-medium text-sky-800 sm:inline">Follow-up · visit {data.visitNumber}</span> : data.attempt > 1 && <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 sm:inline">Attempt {data.attempt}</span>}
-        <span className={`hidden rounded px-1.5 py-0.5 text-xs font-medium md:inline ${data.recorded ? "bg-violet-100 text-violet-800" : "bg-slate-100 text-slate-600"}`}>{data.recorded ? "Recorded for instructor" : "Private practice"}</span>
-        {data.liveAssist && <span className="hidden rounded bg-violet-100 px-1.5 py-0.5 text-xs font-medium text-violet-800 md:inline">Instructor can join</span>}
+        <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600 sm:inline whitespace-nowrap">{MODE_LABEL[data.mode] || data.mode}</span>
+        <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 sm:inline whitespace-nowrap">Difficulty: Level {data.level}</span>
+        {data.visitNumber > 1 ? <span className="hidden rounded bg-sky-100 px-1.5 py-0.5 text-xs font-medium text-sky-800 sm:inline whitespace-nowrap">Follow-up · visit {data.visitNumber}</span> : data.attempt > 1 && <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 sm:inline whitespace-nowrap">Attempt {data.attempt}</span>}
+        <span className={`hidden whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-medium md:inline ${data.recorded ? "bg-violet-100 text-violet-800" : "bg-slate-100 text-slate-600"}`}>{data.recorded ? "Recorded for instructor" : "Private practice"}</span>
+        {data.liveAssist && <span className="hidden whitespace-nowrap rounded bg-violet-100 px-1.5 py-0.5 text-xs font-medium text-violet-800 md:inline">Instructor can join</span>}
         <div className="flex-1" />
-        <span className={`tabular-nums ${remaining !== null && remaining < 120 ? "font-semibold text-rose-600" : "text-slate-600"}`}>{remaining !== null ? `${fmt(remaining)} left` : fmt(elapsed)}</span>
+        <span className={`whitespace-nowrap tabular-nums ${remaining !== null && remaining < 120 ? "font-semibold text-rose-600" : "text-slate-600"}`}>{remaining !== null ? `${fmt(remaining)} left` : fmt(elapsed)}</span>
         {data.hints && joined && !callEnd && (
-          <button onClick={askHint} disabled={busy} className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100">
+          <button onClick={askHint} disabled={busy} className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs max-sm:min-h-10 font-medium text-amber-900 hover:bg-amber-100">
             Coach hint
           </button>
         )}
-        <button onClick={openWrap} disabled={!joined} className="rounded-md bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-700 disabled:bg-slate-300">
+        <button onClick={openWrap} disabled={!joined} className="rounded-md bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-700 disabled:bg-slate-300 max-sm:min-h-10">
           End visit
         </button>
       </header>
 
-      <div className="grid min-h-0 flex-1 gap-3 p-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      {/* Phones and small tablets: one pane at a time, switched here. Hidden from lg up, where both show. */}
+      <div role="tablist" aria-label="Visit or chart" className="grid shrink-0 grid-cols-2 gap-1 border-b border-slate-300 bg-white p-1 lg:hidden">
+        {(["call", "chart"] as const).map((v) => (
+          <button key={v} role="tab" aria-selected={mobileView === v} onClick={() => setMobileView(v)} className={`relative min-h-10 rounded-md text-sm font-medium ${mobileView === v ? "bg-brand-600 text-white" : "text-slate-700 hover:bg-slate-100"}`}>
+            {v === "call" ? "Conversation" : "Patient chart"}
+            {v === "chart" && fresh.size > 0 && mobileView !== "chart" && <span className="absolute right-3 top-2 h-2 w-2 rounded-full bg-amber-400" />}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid min-h-0 flex-1 gap-3 p-2 max-lg:grid-rows-[minmax(0,1fr)] sm:p-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         {/* LEFT: the call */}
-        <div className="flex min-h-0 flex-col gap-3">
+        <div className={`flex min-h-0 flex-col gap-3 ${mobileView === "chart" ? "max-lg:hidden" : ""}`}>
           <div className="relative h-[44%] min-h-[220px] shrink-0 overflow-hidden rounded-lg bg-slate-900">
             {p.portrait ? (
               <TalkingPortrait src={p.portrait} alt={p.name} talking={speaking} enabled={speakerOn} level={mouthLevel} />
@@ -633,23 +645,23 @@ export default function Visit({ id, viewerName }: { id: string; viewerName: stri
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-3 pt-10">
               {captionsOn && caption && <p className="mb-2 text-[15px] leading-snug text-white">{(() => { const t = stripCues(caption); return t.length > 190 ? "… " + t.slice(t.length - 190).replace(/^\S*\s/, "") : t || "…"; })()}</p>}
               {micOn && !patientTalking && !busy && !callEnd && <p className="mb-2 text-sm italic text-emerald-200">{interim ? `You: ${interim}` : "Listening… speak to the patient"}</p>}
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-white">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 truncate text-sm font-medium text-white">
                   {p.name}
                   <span className="ml-2 text-xs font-normal text-white/70">{callEnd && !patientTalking ? "call ended" : patientTalking ? "speaking" : busy ? "thinking…" : chart.emotion}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
                   {[
                     { on: micOn, set: () => setMicOn((v) => !v), a: ICON.mic, b: ICON.micOff, label: micSupported ? (micOn ? "Mute microphone" : "Talk with your microphone") : "Voice input needs Chrome, Edge or Safari", disabled: !micSupported },
                     { on: camOn, set: toggleCam, a: ICON.cam, b: ICON.camOff, label: camOn ? "Turn camera off" : "Turn camera on" },
                     { on: speakerOn, set: () => (setSpeakerOn((v) => !v), stopVoice()), a: ICON.vol, b: ICON.volOff, label: speakerOn ? "Mute patient voice" : "Hear the patient" },
                     { on: captionsOn, set: () => setCaptionsOn((v) => !v), a: ICON.cc, b: ICON.cc, label: captionsOn ? "Hide captions" : "Show captions" },
                   ].map((c, i) => (
-                    <button key={i} onClick={c.set} disabled={c.disabled} title={c.label} aria-label={c.label} className={`grid h-9 w-9 place-items-center rounded-full transition-colors disabled:opacity-40 ${c.on ? "bg-white/20 text-white hover:bg-white/30" : "bg-white text-slate-800"}`}>
+                    <button key={i} onClick={c.set} disabled={c.disabled} title={c.label} aria-label={c.label} className={`grid h-10 w-10 place-items-center rounded-full sm:h-9 sm:w-9 transition-colors disabled:opacity-40 ${c.on ? "bg-white/20 text-white hover:bg-white/30" : "bg-white text-slate-800"}`}>
                       <Icon d={c.on ? c.a : c.b} />
                     </button>
                   ))}
-                  <button onClick={openWrap} title="End visit" aria-label="End visit" className="grid h-9 w-11 place-items-center rounded-full bg-rose-600 text-white hover:bg-rose-700">
+                  <button onClick={openWrap} title="End visit" aria-label="End visit" className="grid h-10 w-12 place-items-center rounded-full bg-rose-600 sm:h-9 sm:w-11 text-white hover:bg-rose-700">
                     <Icon d={ICON.hang} />
                   </button>
                 </div>
@@ -706,10 +718,10 @@ export default function Visit({ id, viewerName }: { id: string; viewerName: stri
                 onChange={(e) => setInput(e.target.value)}
                 disabled={busy || paused || !joined || !!callEnd}
                 placeholder={callEnd ? `${firstName} ended the call` : paused ? "Paused by your instructor" : micOn ? "Speak, or type here" : `Say something to ${firstName}`}
-                className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-[15px] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 disabled:bg-slate-100"
-                autoFocus
+                className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-base sm:text-[15px] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 disabled:bg-slate-100"
+                autoFocus={typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches}
               />
-              <button disabled={busy || paused || !!callEnd || !input.trim()} className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:bg-slate-300">
+              <button disabled={busy || paused || !!callEnd || !input.trim()} className="min-h-10 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:bg-slate-300">
                 Send
               </button>
             </form>
@@ -717,14 +729,16 @@ export default function Visit({ id, viewerName }: { id: string; viewerName: stri
         </div>
 
         {/* RIGHT: the chart */}
+        <div className={`min-h-0 lg:contents ${mobileView === "call" ? "max-lg:hidden" : ""}`}>
         <ChartPanel focus={chartFocus} chart={chart} fresh={fresh} onOrder={order} ordering={ordering} locked={paused || !joined} teamTab={data.journeyRunId ? <JourneyChartTab runId={data.journeyRunId} encounterId={id} /> : undefined} />
+        </div>
       </div>
 
       {/* Waiting room */}
       {!joined && (
         <div className="fixed inset-0 z-20 grid place-items-center bg-slate-900/70 p-4">
           <div className="flex max-h-full w-full max-w-xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
-           <div className="min-h-0 flex-1 overflow-y-auto p-6 pb-2">
+           <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-2 sm:p-6 sm:pb-2">
             <div className="text-xs font-medium uppercase tracking-wide text-brand-600">Waiting room · {MODE_LABEL[data.mode] || data.mode}</div>
             <h1 className="mt-1 text-xl font-semibold text-slate-900">
               {p.name}, {p.age}
@@ -751,7 +765,7 @@ export default function Visit({ id, viewerName }: { id: string; viewerName: stri
               {data.recorded ? "Recorded: your instructor can see this visit, its transcript and its score." : "Private practice: only you see this visit and its feedback. It still updates your own progress."}
             </p>
            </div>
-            <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 px-6 py-4">
+            <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 px-4 py-4 sm:px-6">
               <button
                 onClick={() => {
                   fetch(`/api/encounters/${id}/start`, { method: "POST" }).then(load).catch(() => {});
@@ -759,7 +773,7 @@ export default function Visit({ id, viewerName }: { id: string; viewerName: stri
                   // Unlock audio playback inside the click.
                   audioRef.current?.play().catch(() => {});
                 }}
-                className="rounded-md bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+                className="min-h-11 rounded-md bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
               >
                 Join visit
               </button>
@@ -790,7 +804,7 @@ export default function Visit({ id, viewerName }: { id: string; viewerName: stri
       {/* Wrap-up */}
       {wrapOpen && (
         <div className="fixed inset-0 z-30 grid place-items-center bg-slate-900/70 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-4 shadow-xl sm:p-6">
             {scoring ? (
               <div className="py-10 text-center">
                 <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-brand-600" />
