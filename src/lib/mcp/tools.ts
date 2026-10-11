@@ -11,7 +11,6 @@ import {
 import { professions } from "@/lib/professions";
 import {
   blankProfile,
-  hashProfile,
   sanitizeProfile,
 } from "@/lib/studio/profile";
 import {
