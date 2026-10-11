@@ -82,7 +82,7 @@ export function ActionsSection({ p, set, go }: SectionProps) {
                     <button type="button" className="hover:underline" onClick={() => go("artifacts")}>
                       {d.title || d.id}
                     </button>
-                    <button type="button" aria-label="Unlink" title="Unlink: the document moves to the start of the visit" className="text-slate-400 hover:text-rose-700" onClick={() => set((c) => setRelease(c, d.id, { when: "start" }))}>
+                    <button type="button" aria-label="Unlink" data-tooltip="Unlink: the document moves to the start of the visit" className="text-slate-400 hover:text-rose-700" onClick={() => set((c) => setRelease(c, d.id, { when: "start" }))}>
                       x
                     </button>
                   </span>

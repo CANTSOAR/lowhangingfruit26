@@ -80,6 +80,7 @@ export interface CaseCard {
   encounterType: string;
   patientFirstName: string;
   age: number | null;
+  portrait?: string;
   /** Written by AI and not yet reviewed by faculty. */
   aiDraft: boolean;
 }
@@ -113,6 +114,7 @@ function brief(r: CaseRow): CaseBrief {
     encounterType: p.encounterType || "",
     patientFirstName: (p.patient?.name || "").split(" ")[0] || "Patient",
     age: p.patient?.age ?? null,
+    portrait: p.patient?.portrait,
     aiDraft: r.origin === "ai_draft" && !r.reviewed,
     summary: p.summary || "",
     objectives: (p.objectives || []).map((o) => o.text),
@@ -131,6 +133,7 @@ export const toCard = (b: CaseBrief): CaseCard => ({
   encounterType: b.encounterType,
   patientFirstName: b.patientFirstName,
   age: b.age,
+  portrait: b.portrait,
   aiDraft: b.aiDraft,
 });
 export const publishedCaseCards = (): CaseCard[] => publishedCaseBriefs().map(toCard);

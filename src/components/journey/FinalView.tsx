@@ -46,7 +46,7 @@ function ChainFlow({ chain, onOpen, stages }: { chain: Chain; onOpen: (id: strin
           const body = (
             <>
               <div className={cx("text-[11px] font-semibold uppercase tracking-wide", st.tag)}>{s.label}</div>
-              <div className={cx("mt-0.5 text-[13px] leading-snug text-slate-800", s.kind === "asked" ? "line-clamp-[9]" : "line-clamp-5")} title={s.detail}>{s.kind === "asked" ? `“${s.detail}”` : s.detail}</div>
+              <div className={cx("mt-0.5 text-[13px] leading-snug text-slate-800", s.kind === "asked" ? "line-clamp-[9]" : "line-clamp-5")} data-tooltip={s.detail}>{s.kind === "asked" ? `“${s.detail}”` : s.detail}</div>
               <div className="mt-1 text-[11px] text-slate-500">{s.who}{s.stageOrder > 0 && s.stageOrder <= stages ? ` · encounter ${s.stageOrder}` : ""}</div>
             </>
           );
@@ -180,7 +180,7 @@ function PlanItemRow({ view, item, onOpen, refresh }: { view: RunView; item: Pla
           const e = byId.get(id);
           if (!e) return null;
           return (
-            <button key={id} onClick={() => onOpen(id)} title={e.text} className="inline-flex max-w-[16rem] items-center gap-1 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-700 hover:bg-slate-50">
+            <button key={id} onClick={() => onOpen(id)} data-tooltip={e.text} className="inline-flex max-w-[16rem] items-center gap-1 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-700 hover:bg-slate-50">
               <span className="h-1.5 w-1.5 shrink-0 rounded-sm" style={{ background: STATUS_COLOR[e.effectiveStatus] }} />
               <span className="truncate">{e.stageId === "record" ? "Record" : e.contributorRole}: {e.text}</span>
             </button>
@@ -277,10 +277,10 @@ export default function FinalView({ view, onOpen, refresh }: { view: RunView; on
             <thead>
               <tr className="text-[11px] uppercase tracking-wide text-slate-500">
                 <th className="py-1 pr-3 font-semibold">Encounter</th>
-                <th className="px-2 py-1 font-semibold" title="Earlier entries this professional drew on">Used</th>
-                <th className="px-2 py-1 font-semibold" title="New entries this professional added">Contributed</th>
-                <th className="px-2 py-1 font-semibold" title="Uncertainties, questions and disagreements raised">Identified</th>
-                <th className="px-2 py-1 font-semibold" title="Handoff written to the next professional">Communicated</th>
+                <th className="px-2 py-1 font-semibold" data-tooltip="Earlier entries this professional drew on">Used</th>
+                <th className="px-2 py-1 font-semibold" data-tooltip="New entries this professional added">Contributed</th>
+                <th className="px-2 py-1 font-semibold" data-tooltip="Uncertainties, questions and disagreements raised">Identified</th>
+                <th className="px-2 py-1 font-semibold" data-tooltip="Handoff written to the next professional">Communicated</th>
               </tr>
             </thead>
             <tbody>

@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import type { ChartView } from "@/lib/engine/encounter";
-import { dobFor, find, fmtDate, hasAllergy, mrnFor, parseTeam, parseVitals, splitList } from "./derive";
+import { find, hasAllergy, parseTeam, parseVitals, splitList } from "./derive";
 import { LINK } from "./ui";
 
 export type PatientBits = ReturnType<typeof patientBits>;
 
-export function patientBits(chart: ChartView, now: Date) {
+export function patientBits(chart: ChartView) {
   const p = chart.patient;
   const allergyText = find(chart, /allerg/i);
   const team = splitList(find(chart, /care team|pcp/i));
@@ -18,8 +18,8 @@ export function patientBits(chart: ChartView, now: Date) {
     display: parts.length > 1 ? `${last}, ${parts.slice(0, -1).join(" ")}` : p.name,
     initials: parts.map((x) => x[0]).slice(0, 2).join("").toUpperCase(),
     sexLabel: /^f/i.test(p.sex) ? "Female" : /^m/i.test(p.sex) ? "Male" : p.sex,
-    dob: fmtDate(dobFor(p, now)),
-    mrn: mrnFor(p),
+    dob: find(chart, /^(dob|date of birth)$/i) || "Not provided",
+    mrn: find(chart, /^(mrn|medical record number)$/i) || "Not provided",
     allergyText,
     allergic: hasAllergy(allergyText),
     code: find(chart, /code status/i),
@@ -53,12 +53,12 @@ export default function Storyboard({ chart, bits, open, onToggle, onGo }: { char
   if (!open)
     return (
       <aside className="flex w-11 shrink-0 flex-col items-center gap-2 border-r border-[#9aa8b8] bg-[#e4e9ef] py-2" aria-label="Patient panel (collapsed)">
-        <button onClick={onToggle} title="Show patient panel" aria-label="Show patient panel" className="grid h-7 w-7 place-items-center rounded border border-[#9aa8b8] bg-white text-[#2b4468] hover:bg-[#eef2f6]">
+        <button onClick={onToggle} data-tooltip="Show patient panel" aria-label="Show patient panel" className="grid h-7 w-7 place-items-center rounded border border-[#9aa8b8] bg-white text-[#2b4468] hover:bg-[#eef2f6]">
           »
         </button>
         <Avatar chart={chart} bits={bits} size={32} />
         {bits.allergic && (
-          <span title={`Allergies: ${bits.allergyText}`} className="rounded-sm bg-[#c62828] px-1 text-xs font-bold text-white">
+          <span data-tooltip={`Allergies: ${bits.allergyText}`} className="rounded-sm bg-[#c62828] px-1 text-xs font-bold text-white">
             Alg
           </span>
         )}
@@ -75,7 +75,7 @@ export default function Storyboard({ chart, bits, open, onToggle, onGo }: { char
             {p.pronouns ? ` (${p.pronouns})` : ""}
           </div>
         </div>
-        <button onClick={onToggle} title="Hide patient panel" aria-label="Hide patient panel" className="grid h-6 w-6 shrink-0 place-items-center rounded border border-[#9aa8b8] bg-white text-[#2b4468] hover:bg-[#eef2f6]">
+        <button onClick={onToggle} data-tooltip="Hide patient panel" aria-label="Hide patient panel" className="grid h-6 w-6 shrink-0 place-items-center rounded border border-[#9aa8b8] bg-white text-[#2b4468] hover:bg-[#eef2f6]">
           «
         </button>
       </div>
@@ -115,7 +115,7 @@ export default function Storyboard({ chart, bits, open, onToggle, onGo }: { char
         ) : (
           <ul className="list-disc space-y-0.5 pl-4">
             {bits.problems.slice(0, 4).map((x, i) => (
-              <li key={i} title={x} className="text-[#1a1a1a]">
+              <li key={i} data-tooltip={x} className="text-[#1a1a1a]">
                 <span className="line-clamp-2">{x}</span>
               </li>
             ))}

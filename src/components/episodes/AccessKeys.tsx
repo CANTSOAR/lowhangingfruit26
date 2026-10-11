@@ -41,6 +41,7 @@ export default function AccessKeys({ origin }: { origin: string }) {
       <div className="flex gap-2">
         <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="What is this key for? e.g. Claude Desktop" className="max-w-xs" />
         <Button onClick={create} variant="secondary">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="h-4 w-4"><circle cx="8" cy="8" r="5" /><path d="m11.5 11.5 9 9M16 16l3-3M18 18l3-3" /></svg>
           Create key
         </Button>
       </div>
@@ -65,7 +66,7 @@ export default function AccessKeys({ origin }: { origin: string }) {
         </ul>
       )}
       <details className="rounded-md border border-slate-200 px-3 py-2">
-        <summary className="cursor-pointer text-xs font-medium text-slate-700">Connection details</summary>
+        <summary className="cursor-pointer text-xs font-medium text-slate-700"><span className="inline-flex items-center gap-2 align-middle"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="m8 5-7 7 7 7M16 5l7 7-7 7m-2-16-4 20" /></svg>Connection details</span></summary>
         <div className="mt-2 space-y-2 text-xs text-slate-700">
           <p>
             MCP (Streamable HTTP): <code className="rounded bg-slate-100 px-1">{origin}/api/mcp</code> with header <code className="rounded bg-slate-100 px-1">Authorization: Bearer &lt;key&gt;</code>

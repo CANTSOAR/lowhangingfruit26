@@ -90,18 +90,28 @@ export function drugNames(text: string): Set<string> {
   return out;
 }
 
-/**
- * Do two texts raise the same issue? Two or more medicines in common; or one in common when both are
- * medication-safety concerns; or most of one text's content words found in the other. Conservative on
- * purpose: two entries about different medicines or different topics stay separate.
- */
+/** Merge only the same clinical concern: matching medicines, amounts, polarity and concern type.
+ * Dose problems and interactions remain separate even when they mention the same medicine. */
 export function sameIssue(a: string, b: string): boolean {
   const da = drugNames(a);
-  let shared = 0;
-  for (const d of drugNames(b)) if (da.has(d)) shared++;
-  if (shared >= 2) return true;
-  if (shared >= 1 && isMedSafetyConcern(a) && isMedSafetyConcern(b)) return true;
-  return Math.max(bestOverlap(a, [b]), bestOverlap(b, [a])) >= 0.6;
+  const db = drugNames(b);
+  const equal = (x: Set<string>, y: Set<string>) => x.size === y.size && [...x].every(v=>y.has(v));
+  if (!equal(da, db)) return false;
+  const numbers = (t: string) => new Set(t.match(/\b\d+(?:\.\d+)?\b/g) || []);
+  if (!equal(numbers(a), numbers(b))) return false;
+  const negated = (t: string) => /\b(no|not|without|ruled out|excluded)\b/i.test(t);
+  if (negated(a) !== negated(b)) return false;
+  const kinds = (t: string) => new Set([
+    ["duplicate", /duplicat|double[- ]dos|two (?:different )?beta|dual beta/i],
+    ["dose", /wrong dose|incorrect dose|dose (?:is |seems |appears )?(?:too|wrong|incorrect)|overdos/i],
+    ["interaction", /interaction/i], ["contraindication", /contraindicat/i],
+    ["adverse", /adverse (?:effect|reaction)/i], ["intent", /unintentional|unconfirmed.*intent|intent.*unconfirmed/i],
+    ["polypharmacy", /polypharmacy/i],
+  ].filter(([,re])=>(re as RegExp).test(t)).map(([name])=>name as string));
+  const ka=kinds(a), kb=kinds(b);
+  if (!equal(ka,kb)) return false;
+  if (da.size && ka.size && isMedSafetyConcern(a) && isMedSafetyConcern(b)) return true;
+  return Math.min(bestOverlap(a, [b]), bestOverlap(b, [a])) >= 0.85 || normText(a) === normText(b);
 }
 
 /**

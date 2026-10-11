@@ -169,9 +169,9 @@ export function stageLabel(view: RunView, e: { stageId: string; stageOrder: numb
 export function EntryRow({ entry, onOpen, showWho = true, dense }: { entry: StateEntry; onOpen?: (id: string) => void; showWho?: boolean; dense?: boolean }) {
   return (
     <button type="button" onClick={() => onOpen?.(entry.id)} className={cx("flex w-full items-start gap-2 rounded-md px-2 text-left hover:bg-slate-50", dense ? "py-1" : "py-1.5")}>
-      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-sm" style={{ background: STATUS_COLOR[entry.effectiveStatus] }} title={STATUS_LABEL[entry.effectiveStatus]} />
+      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-sm" style={{ background: STATUS_COLOR[entry.effectiveStatus] }} data-tooltip={STATUS_LABEL[entry.effectiveStatus]} />
       <span className="min-w-0 flex-1">
-        <span className={cx("text-sm text-slate-800", entry.text.length > 260 && "line-clamp-3")} title={entry.text.length > 260 ? "Select to read the whole entry" : undefined}>{entry.text}</span>
+        <span className={cx("text-sm text-slate-800", entry.text.length > 260 && "line-clamp-3")} data-tooltip={entry.text.length > 260 ? "Select to read the whole entry" : undefined}>{entry.text}</span>
         <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-slate-500">
           <span>{KIND_LABEL[entry.kind] || entry.kind}</span>
           {STATUS_LABEL[entry.effectiveStatus] !== (KIND_LABEL[entry.kind] || entry.kind) && <span>{STATUS_LABEL[entry.effectiveStatus]}</span>}

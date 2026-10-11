@@ -15,22 +15,10 @@ export function hash(s: string): number {
   return h >>> 0;
 }
 
-/** A fake but stable medical record number from the patient's identity. */
-export function mrnFor(p: ChartView["patient"]): string {
-  return String(10000000 + (hash(`${p.name}|${p.sex}|${p.age}`) % 89999999));
-}
-
 export function fmtDate(d: Date): string {
   return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}/${d.getFullYear()}`;
 }
 export const fmtShort = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`;
-
-/** A plausible date of birth that always yields exactly the stated age today. */
-export function dobFor(p: ChartView["patient"], now: Date): Date {
-  const d = new Date(now.getFullYear() - p.age, now.getMonth(), now.getDate());
-  d.setDate(d.getDate() - (hash(p.name + "dob") % 360) - 1);
-  return d;
-}
 
 export function daysBefore(now: Date, days: number): Date {
   const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -45,7 +33,7 @@ export function daysAgo(s: string | undefined, now: Date): number | null {
   const t = s.trim().toLowerCase();
   if (/^(today|day of visit|current|now|reviewed today|updated today)/.test(t)) return 0;
   if (/^yesterday/.test(t)) return 1;
-  if (/^(last|past)\b/.test(t)) return 0;
+  if (/^(last|past)\b/.test(t)) return null;
   const m = t.match(/(\d+)\s*(day|week|month|year)s?\s*(ago|prior)/);
   if (m) return Number(m[1]) * UNIT[m[2]];
   const iso = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -109,8 +97,8 @@ export function parseTeam(entry: string): { who: string; role: string } {
 /** Review dates: show a calendar date, keep the case's own phrase as secondary text. */
 export function dateParts(raw: string | undefined, now: Date): { days: number | null; label: string; sub: string } {
   const days = daysAgo(raw, now);
-  if (days === null) return { days, label: raw || "", sub: "" };
-  return { days, label: fmtDate(daysBefore(now, days)), sub: raw || "" };
+  // Preserve the authored date and its precision, including case-relative phrases.
+  return { days, label: raw || "Not provided", sub: "" };
 }
 
 // ---------- Flowsheet grids ----------

@@ -62,7 +62,7 @@ const FactRow = memo(function FactRow({ f, uses, onChange, onDelete }: { f: Fact
             </option>
           ))}
         </select>
-        <label className="mt-1 flex items-center gap-1 text-[11px] text-slate-600" title="A plausible red herring that is not relevant to the main problem. Only used at higher difficulty.">
+        <label className="mt-1 flex items-center gap-1 text-[11px] text-slate-600" data-tooltip="A plausible red herring that is not relevant to the main problem. Only used at higher difficulty.">
           <input type="checkbox" checked={!!f.distractor} onChange={(e) => onChange(f.id, { distractor: e.target.checked })} />
           Distractor
         </label>

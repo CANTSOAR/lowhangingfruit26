@@ -17,6 +17,6 @@ export async function GET(req: Request) {
     return ep ? Response.json(ep) : bad("Episode not found", 404);
   }
   return Response.json({
-    episodes: searchEpisodes(user, { patient: p.get("patient") || undefined, participant: p.get("participant") || undefined, role: p.get("role") || undefined, text: p.get("text") || undefined, caseId: p.get("caseId") || undefined, limit: Number(p.get("limit")) || undefined }),
+    episodes: searchEpisodes(user, { query: p.get("q") || undefined, patient: p.get("patient") || undefined, participant: p.get("participant") || undefined, role: p.get("role") || undefined, text: p.get("text") || undefined, caseId: p.get("caseId") || undefined, limit: Number(p.get("limit")) || undefined }),
   });
 }

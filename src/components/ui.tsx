@@ -13,13 +13,13 @@ const SIZE = { sm: "px-2.5 py-1 text-xs", md: "px-3.5 py-2 text-sm", lg: "px-5 p
 type BtnProps = { variant?: keyof typeof BTN; size?: keyof typeof SIZE };
 
 export function Button({ variant = "primary", size = "md", className, ...p }: ComponentProps<"button"> & BtnProps) {
-  return <button {...p} className={cx("inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors disabled:cursor-not-allowed", BTN[variant], SIZE[size], className)} />;
+  return <button {...p} className={cx("inline-flex items-center justify-center gap-1.5 rounded-xl font-medium transition-colors disabled:cursor-not-allowed", BTN[variant], SIZE[size], className)} />;
 }
 export function LinkButton({ variant = "primary", size = "md", className, ...p }: ComponentProps<typeof Link> & BtnProps) {
-  return <Link {...p} className={cx("inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors", BTN[variant], SIZE[size], className)} />;
+  return <Link {...p} className={cx("inline-flex items-center justify-center gap-1.5 rounded-xl font-medium transition-colors", BTN[variant], SIZE[size], className)} />;
 }
 export function Card({ className, ...p }: ComponentProps<"div">) {
-  return <div {...p} className={cx("rounded-lg border border-slate-200 bg-white shadow-sm", className)} />;
+  return <div {...p} className={cx("rounded-2xl border border-slate-200 bg-white shadow-sm", className)} />;
 }
 export function CardHeader({ title, subtitle, action }: { title: ReactNode; subtitle?: ReactNode; action?: ReactNode }) {
   return (
@@ -44,7 +44,7 @@ const TONES = {
 export function Badge({ tone = "slate", className, ...p }: ComponentProps<"span"> & { tone?: keyof typeof TONES }) {
   return <span {...p} className={cx("inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium", TONES[tone], className)} />;
 }
-const FIELD = "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200";
+const FIELD = "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200";
 export function Input({ className, ...p }: ComponentProps<"input">) {
   return <input {...p} className={cx(FIELD, className)} />;
 }
@@ -69,6 +69,6 @@ export function PageHeader({ title, subtitle, action }: { title: ReactNode; subt
   );
 }
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">{children}</div>;
+  return <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">{children}</div>;
 }
 export { cx };

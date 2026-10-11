@@ -48,7 +48,19 @@
     ".next-fix/types/**/*.ts",
     ".next-fix/dev/types/**/*.ts",
     ".next-jfix/types/**/*.ts",
-    ".next-jfix/dev/types/**/*.ts"
+    ".next-jfix/dev/types/**/*.ts",
+    ".next-integrated/types/**/*.ts",
+    ".next-integrated/dev/types/**/*.ts",
+    ".next-integrated-final/types/**/*.ts",
+    ".next-integrated-final/dev/types/**/*.ts",
+    ".next-hover-final/types/**/*.ts",
+    ".next-hover-final/dev/types/**/*.ts",
+    ".next-poscere-final/types/**/*.ts",
+    ".next-poscere-final/dev/types/**/*.ts",
+    ".next-poscere-final-ui/types/**/*.ts",
+    ".next-poscere-final-ui/dev/types/**/*.ts",
+    ".next-publish-main/types/**/*.ts",
+    ".next-publish-main/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

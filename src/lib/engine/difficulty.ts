@@ -2,6 +2,16 @@ import type { Knobs, Perturbation } from "../types";
 
 export const LEVEL_NAMES = ["", "Foundational", "Developing", "Proficient", "Advanced", "Expert"];
 
+/** Interview challenge represented by the face icon, rather than an inferred patient mood. */
+export const INTERVIEW_STYLES = [
+  { label: "", description: "" },
+  { label: "Approachable", description: "Readily volunteers information, gives fuller answers, and offers hints." },
+  { label: "Open", description: "Still volunteers information, but needs more trust and gives slightly less detail." },
+  { label: "Reserved", description: "Waits for your questions to share information; build trust and clarify relevant details." },
+  { label: "Guarded", description: "Needs more reassurance, gives shorter and vaguer answers, and offers no hints." },
+  { label: "Very guarded", description: "Needs the most trust before sharing sensitive information; answers are vague and there are no hints." },
+];
+
 /**
  * Difficulty never changes the clinical facts of a case. It changes how hard the patient is to
  * interview: how much trust is needed, how vague they are, how many facts come out per answer.

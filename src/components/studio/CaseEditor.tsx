@@ -392,7 +392,7 @@ export default function CaseEditor({
               )}
             </div>
             {/* The patient's name comes first and never truncates; the faculty title follows and may take a second line. */}
-            <h1 className="line-clamp-2 text-base leading-snug text-slate-900" title={profile.title || undefined}>
+            <h1 className="line-clamp-2 text-base leading-snug text-slate-900" data-tooltip={profile.title || undefined}>
               <span className="whitespace-nowrap font-semibold">
                 {profile.patient.name || "Unnamed patient"}, {profile.patient.age}
               </span>

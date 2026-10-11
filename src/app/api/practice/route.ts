@@ -39,6 +39,11 @@ export async function POST(req: Request) {
       profile.difficulty,
       JSON.stringify(profile),
     );
-    return { id: createEncounter({ userId: user.id, caseId, professionId: role.id, mode: "practice", level }) };
+    return {
+      id: createEncounter({ userId: user.id, caseId, professionId: role.id, mode: "practice", level }),
+      patient: { id: caseId, label: profile.patient.name.split(" ")[0], patientFirstName: profile.patient.name.split(" ")[0],
+        age: profile.patient.age, portrait: profile.patient.portrait, specialty: profile.specialty || "",
+        professions: profile.professions, difficulty: profile.difficulty, encounterType: profile.encounterType, aiDraft: true },
+    };
   });
 }

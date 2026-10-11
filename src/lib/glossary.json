@@ -1,0 +1,647 @@
+{
+  "version": "2026-10-11",
+  "terms": {
+    "adaptive": {
+      "label": "Adaptive practice",
+      "definition": "The next difficulty is picked from your results. Patient behaviour is adjusted to exercise your weakest rubric domain.",
+      "source": "Poscere: src/lib/adaptive.ts"
+    },
+    "rubric": {
+      "label": "Rubric",
+      "definition": "The scoring guide used to assess your conversation and write-up. Feedback explains each domain with evidence from your visit.",
+      "source": "Poscere: src/lib/rubrics.ts"
+    },
+    "rating": {
+      "label": "Skill rating",
+      "definition": "A number that changes when you perform above or below the expected outcome at a difficulty level. It is not a percentage of mastery.",
+      "source": "Poscere: src/lib/adaptive.ts"
+    },
+    "variation": {
+      "label": "Patient variation",
+      "definition": "A retry can change the patient's mood and way of speaking. The clinical facts stay the same.",
+      "source": "Poscere: src/lib/engine/difficulty.ts"
+    },
+    "draft": {
+      "label": "AI draft",
+      "definition": "A fictional case written by AI that faculty have not reviewed. Use it for practice; its content is not clinically validated.",
+      "source": "Poscere: src/app/api/practice/route.ts"
+    },
+    "vitals": {
+      "label": "Vital signs",
+      "definition": "Basic measures of body function: temperature, pulse, breathing rate and blood pressure.",
+      "source": "https://medlineplus.gov/ency/article/002341.htm",
+      "aliases": [
+        "vital signs",
+        "vitals"
+      ]
+    },
+    "cbc": {
+      "label": "Complete blood count (CBC)",
+      "definition": "A blood test that measures blood cells, including red cells, white cells and platelets.",
+      "source": "https://medlineplus.gov/lab-tests/complete-blood-count-cbc/",
+      "aliases": [
+        "complete blood count",
+        "CBC"
+      ]
+    },
+    "lipids": {
+      "label": "Lipid panel",
+      "definition": "A blood test measuring cholesterol and triglycerides, which are fats in the blood.",
+      "source": "https://medlineplus.gov/lab-tests/cholesterol-levels/",
+      "aliases": [
+        "lipid panel",
+        "lipids"
+      ]
+    },
+    "sbar": {
+      "label": "SBAR",
+      "definition": "A structured handoff: Situation, Background, Assessment, and Recommendation or Request.",
+      "source": "https://www.ahrq.gov/teamstepps-program/curriculum/communication/tools/sbar.html",
+      "aliases": [
+        "SBAR"
+      ]
+    },
+    "polyuria": {
+      "label": "Polyuria",
+      "definition": "Passing an unusually large volume of urine, rather than simply going more often.",
+      "source": "https://medlineplus.gov/ency/article/003146.htm",
+      "aliases": [
+        "polyuria"
+      ]
+    },
+    "polydipsia": {
+      "label": "Polydipsia",
+      "definition": "Unusually strong or persistent thirst.",
+      "source": "https://medlineplus.gov/ency/article/003085.htm",
+      "aliases": [
+        "polydipsia"
+      ]
+    },
+    "nocturia": {
+      "label": "Nocturia",
+      "definition": "Waking from sleep to urinate.",
+      "source": "https://medlineplus.gov/ency/article/003141.htm",
+      "aliases": [
+        "nocturia"
+      ]
+    },
+    "enuresis": {
+      "label": "Enuresis",
+      "definition": "Involuntary wetting. Nocturnal enuresis means wetting during sleep.",
+      "source": "https://www.niddk.nih.gov/health-information/urologic-diseases/bladder-control-problems-bedwetting-children/definition-facts",
+      "aliases": [
+        "nocturnal enuresis",
+        "enuresis"
+      ]
+    },
+    "acanthosis": {
+      "label": "Acanthosis nigricans",
+      "definition": "Areas of darker, thickened skin with a velvety texture, often in skin folds.",
+      "source": "https://medlineplus.gov/ency/article/000852.htm",
+      "aliases": [
+        "acanthosis nigricans"
+      ]
+    },
+    "a1c": {
+      "label": "Hemoglobin A1c (HbA1c)",
+      "definition": "A blood test summarizing blood sugar levels over roughly the previous two to three months.",
+      "source": "https://medlineplus.gov/lab-tests/hemoglobin-a1c-hba1c-test/",
+      "aliases": [
+        "hemoglobin A1c",
+        "HbA1c",
+        "A1c"
+      ]
+    },
+    "dka": {
+      "label": "Diabetic ketoacidosis (DKA)",
+      "definition": "A dangerous complication of diabetes in which ketones build up and make the blood too acidic.",
+      "source": "https://medlineplus.gov/ency/article/000320.htm",
+      "aliases": [
+        "diabetic ketoacidosis",
+        "DKA"
+      ]
+    },
+    "cpeptide": {
+      "label": "C-peptide",
+      "definition": "A substance released when the body makes insulin. Measuring it helps estimate the body’s own insulin production.",
+      "source": "https://medlineplus.gov/lab-tests/c-peptide-test/",
+      "aliases": [
+        "C-peptide",
+        "C peptide"
+      ]
+    },
+    "urinalysis": {
+      "label": "Urinalysis",
+      "definition": "Testing a urine sample for clues about health and disease.",
+      "source": "https://medlineplus.gov/urinalysis.html",
+      "aliases": [
+        "urinalysis"
+      ]
+    },
+    "differential": {
+      "label": "Differential diagnosis",
+      "definition": "A set of possible explanations for symptoms that is narrowed using history, examination and tests.",
+      "source": "https://medlineplus.gov/lab-tests/differential-diagnosis/",
+      "aliases": [
+        "differential diagnoses",
+        "differential diagnosis"
+      ]
+    },
+    "hyperglycemia": {
+      "label": "Hyperglycemia",
+      "definition": "Blood sugar that is higher than normal.",
+      "source": "https://medlineplus.gov/ency/article/003085.htm",
+      "aliases": [
+        "hyperglycemia",
+        "hyperglycaemia"
+      ]
+    },
+    "glucose": {
+      "label": "Blood glucose",
+      "definition": "The sugar in the blood that provides energy to the body’s cells.",
+      "source": "https://medlineplus.gov/lab-tests/hemoglobin-a1c-hba1c-test/",
+      "aliases": [
+        "blood glucose",
+        "fasting glucose"
+      ]
+    },
+    "opening_and_purpose": {
+      "label": "Opening and purpose",
+      "definition": "Introduce yourself and your role, agree on the patient’s main concern, and explain what the visit will cover.",
+      "source": "Poscere: data/rubrics/encounter_evaluation_rubric.json",
+      "aliases": [
+        "Opening and purpose",
+        "opening and purpose"
+      ]
+    },
+    "rapport_respect_empathy": {
+      "label": "Rapport, respect, and empathy",
+      "definition": "Build trust by listening attentively, respecting the patient’s perspective, and acknowledging feelings without judgment.",
+      "source": "Poscere: data/rubrics/encounter_evaluation_rubric.json",
+      "aliases": [
+        "rapport respect empathy",
+        "rapport, respect, and empathy",
+        "Rapport, respect, and empathy"
+      ]
+    },
+    "information_gathering": {
+      "label": "Information gathering",
+      "definition": "Use open questions and focused follow-ups to learn the relevant history, symptoms, risks, and patient goals.",
+      "source": "Poscere: data/rubrics/encounter_evaluation_rubric.json",
+      "aliases": [
+        "Information gathering",
+        "information gathering"
+      ]
+    },
+    "listening_and_response_to_cues": {
+      "label": "Listening and response to cues",
+      "definition": "Notice concerns, uncertainty, and inconsistencies in the patient’s story, then clarify them without interrupting.",
+      "source": "Poscere: data/rubrics/encounter_evaluation_rubric.json",
+      "aliases": [
+        "Listening and response to cues",
+        "listening and response to cues"
+      ]
+    },
+    "explanation_and_shared_decisions": {
+      "label": "Explanation and shared decisions",
+      "definition": "Explain findings and options in plain language, check understanding, and agree on next steps with the patient.",
+      "source": "Poscere: data/rubrics/encounter_evaluation_rubric.json",
+      "aliases": [
+        "explanation and shared decisions",
+        "Explanation and shared decisions"
+      ]
+    },
+    "clinical_reasoning_and_synthesis": {
+      "label": "Clinical reasoning and synthesis",
+      "definition": "Connect the history, examination, and test results to form an assessment. Consider alternatives, uncertainty, and warning signs.",
+      "source": "Poscere: data/rubrics/encounter_evaluation_rubric.json",
+      "aliases": [
+        "clinical reasoning and synthesis",
+        "Clinical reasoning and synthesis"
+      ]
+    },
+    "professionalism_safety_closure": {
+      "label": "Professionalism, safety, and closure",
+      "definition": "Respect privacy and boundaries, explain limitations, and close with a clear plan for follow-up and when to seek help.",
+      "source": "Poscere: data/rubrics/encounter_evaluation_rubric.json",
+      "aliases": [
+        "Professionalism, safety, and closure",
+        "professionalism safety closure",
+        "professionalism, safety, and closure"
+      ]
+    },
+    "intro": {
+      "label": "Professional introduction",
+      "definition": "Introduce your role and use respectful, empathetic language throughout the visit.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Professional introduction"
+      ]
+    },
+    "needs_dx": {
+      "label": "Age at hearing-loss diagnosis",
+      "definition": "Find out when hearing loss was identified and how it has affected the patient.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Age at hearing-loss diagnosis"
+      ]
+    },
+    "needs_device": {
+      "label": "Hearing-device use",
+      "definition": "Ask about hearing aids or implants, how they are used, and any difficulties.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Hearing-device use"
+      ]
+    },
+    "needs_aud": {
+      "label": "Other auditory complaints",
+      "definition": "Ask about additional hearing symptoms, including ringing in the ears or sound sensitivity.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Other auditory complaints"
+      ]
+    },
+    "needs_edu": {
+      "label": "Educational needs",
+      "definition": "Explore learning needs and the support needed in school or other educational settings.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Educational needs"
+      ]
+    },
+    "needs_comm": {
+      "label": "Communication needs",
+      "definition": "Ask which everyday listening or communication challenge matters most to the patient today.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Communication needs"
+      ]
+    },
+    "audio_sev": {
+      "label": "Hearing-loss severity",
+      "definition": "Explain the hearing-test results clearly and sensitively, including their impact on communication.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Hearing-loss severity"
+      ]
+    },
+    "audio_banana": {
+      "label": "Speech Banana",
+      "definition": "An audiogram region showing where common speech sounds fall in pitch and loudness.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Speech Banana"
+      ]
+    },
+    "exp_roles": {
+      "label": "Audiologist and SLP roles",
+      "definition": "Explain how an audiologist supports hearing and a speech-language pathologist supports communication.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Audiologist and SLP roles"
+      ]
+    },
+    "exp_rehab": {
+      "label": "Aural rehabilitation",
+      "definition": "Support and training that help someone make use of hearing and communicate more effectively.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Aural rehabilitation"
+      ]
+    },
+    "exp_empathy": {
+      "label": "Expressing empathy",
+      "definition": "Acknowledge the patient’s feelings and the effect of their difficulties on daily life.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Expressing empathy"
+      ]
+    },
+    "exp_questions": {
+      "label": "Answering patient questions",
+      "definition": "Invite questions and give understandable answers that address the patient’s concerns.",
+      "source": "Poscere: src/lib/rubrics.ts",
+      "aliases": [
+        "Answering patient questions"
+      ]
+    },
+    "melena": {
+      "label": "Melena",
+      "definition": "Black, tar-like stool caused by digested blood, usually from bleeding higher in the digestive tract.",
+      "source": "https://medlineplus.gov/ency/article/003130.htm",
+      "aliases": [
+        "melena"
+      ]
+    },
+    "anemia": {
+      "label": "Anemia",
+      "definition": "Too few healthy red blood cells or too little hemoglobin to carry enough oxygen.",
+      "source": "https://medlineplus.gov/lab-tests/complete-blood-count-cbc/",
+      "aliases": [
+        "anemia",
+        "anaemia"
+      ]
+    },
+    "hemoglobin": {
+      "label": "Hemoglobin",
+      "definition": "The protein in red blood cells that carries oxygen.",
+      "source": "https://medlineplus.gov/lab-tests/red-blood-cell-rbc-indices/",
+      "aliases": [
+        "hemoglobin",
+        "haemoglobin",
+        "Hgb"
+      ]
+    },
+    "microcytosis": {
+      "label": "Microcytosis",
+      "definition": "Red blood cells that are smaller than usual; their size is measured by MCV.",
+      "source": "https://medlineplus.gov/lab-tests/red-blood-cell-rbc-indices/",
+      "aliases": [
+        "microcytosis",
+        "microcytic"
+      ]
+    },
+    "mcv": {
+      "label": "Mean corpuscular volume (MCV)",
+      "definition": "A measure of the average size of red blood cells.",
+      "source": "https://medlineplus.gov/lab-tests/red-blood-cell-rbc-indices/",
+      "aliases": [
+        "MCV",
+        "mean corpuscular volume"
+      ]
+    },
+    "ferritin": {
+      "label": "Ferritin",
+      "definition": "A protein that stores iron. A ferritin blood test helps assess iron stores.",
+      "source": "https://medlineplus.gov/lab-tests/iron-tests/",
+      "aliases": [
+        "ferritin"
+      ]
+    },
+    "tibc": {
+      "label": "Total iron-binding capacity (TIBC)",
+      "definition": "A blood test assessing how much iron blood proteins can bind.",
+      "source": "https://medlineplus.gov/lab-tests/iron-tests/",
+      "aliases": [
+        "TIBC",
+        "total iron-binding capacity"
+      ]
+    },
+    "iron_studies": {
+      "label": "Iron studies",
+      "definition": "A group of blood tests checking iron levels, iron transport, and stored iron.",
+      "source": "https://medlineplus.gov/lab-tests/iron-tests/",
+      "aliases": [
+        "iron studies",
+        "iron panel"
+      ]
+    },
+    "transferrin": {
+      "label": "Transferrin",
+      "definition": "A protein that transports iron in the blood.",
+      "source": "https://medlineplus.gov/lab-tests/iron-tests/",
+      "aliases": [
+        "transferrin"
+      ]
+    },
+    "nsaids": {
+      "label": "Nonsteroidal anti-inflammatory drugs (NSAIDs)",
+      "definition": "Medicines such as ibuprofen and naproxen that reduce pain and inflammation. They can increase stomach bleeding risk.",
+      "source": "https://medlineplus.gov/druginfo/meds/a681029.html",
+      "aliases": [
+        "NSAIDs",
+        "NSAID",
+        "nonsteroidal anti-inflammatory drugs"
+      ]
+    },
+    "naproxen": {
+      "label": "Naproxen",
+      "definition": "An NSAID used for pain and inflammation.",
+      "source": "https://medlineplus.gov/druginfo/meds/a681029.html",
+      "aliases": [
+        "naproxen"
+      ]
+    },
+    "colonoscopy": {
+      "label": "Colonoscopy",
+      "definition": "An examination of the inside of the large intestine using a flexible camera.",
+      "source": "https://medlineplus.gov/ency/article/003886.htm",
+      "aliases": [
+        "colonoscopy"
+      ]
+    },
+    "dyspnea": {
+      "label": "Dyspnea",
+      "definition": "The feeling of difficult or uncomfortable breathing, often called shortness of breath.",
+      "source": "https://medlineplus.gov/ency/article/000140.htm",
+      "aliases": [
+        "dyspnea",
+        "dyspnoea"
+      ]
+    },
+    "orthopnea": {
+      "label": "Orthopnea",
+      "definition": "Difficulty breathing when lying flat.",
+      "source": "https://medlineplus.gov/ency/article/000140.htm",
+      "aliases": [
+        "orthopnea",
+        "orthopnoea"
+      ]
+    },
+    "edema": {
+      "label": "Edema",
+      "definition": "Swelling caused by fluid collecting in body tissues.",
+      "source": "https://medlineplus.gov/ency/article/000140.htm",
+      "aliases": [
+        "edema",
+        "oedema"
+      ]
+    },
+    "tachycardia": {
+      "label": "Tachycardia",
+      "definition": "A faster-than-normal heart rate.",
+      "source": "https://medlineplus.gov/ency/article/000140.htm",
+      "aliases": [
+        "tachycardia"
+      ]
+    },
+    "tachypnea": {
+      "label": "Tachypnea",
+      "definition": "A faster-than-normal breathing rate.",
+      "source": "https://medlineplus.gov/ency/article/000140.htm",
+      "aliases": [
+        "tachypnea",
+        "tachypnoea"
+      ]
+    },
+    "pallor": {
+      "label": "Pallor",
+      "definition": "An unusually pale appearance of the skin or mucous membranes.",
+      "source": "https://medlineplus.gov/ency/article/000140.htm",
+      "aliases": [
+        "pallor"
+      ]
+    },
+    "cyanosis": {
+      "label": "Cyanosis",
+      "definition": "A bluish appearance of the skin or mucous membranes, which can indicate low oxygen.",
+      "source": "https://medlineplus.gov/ency/article/000140.htm",
+      "aliases": [
+        "cyanosis"
+      ]
+    },
+    "creatinine": {
+      "label": "Creatinine",
+      "definition": "A waste product from muscles. Blood levels help assess how well the kidneys filter waste.",
+      "source": "https://medlineplus.gov/lab-tests/creatinine-test/",
+      "aliases": [
+        "creatinine"
+      ]
+    },
+    "hpi": {
+      "label": "History of present illness (HPI)",
+      "definition": "The story of the current problem: onset, course, symptoms, relevant context, and what makes it better or worse.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "HPI",
+        "history of present illness"
+      ]
+    },
+    "otc": {
+      "label": "Over-the-counter (OTC)",
+      "definition": "A medicine available without a prescription. Include these medicines when reviewing medication use.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "OTC",
+        "over-the-counter"
+      ]
+    },
+    "ros": {
+      "label": "Review of systems (ROS)",
+      "definition": "Questions about symptoms across body systems to identify additional relevant problems.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "ROS",
+        "review of systems"
+      ]
+    },
+    "soap": {
+      "label": "SOAP note",
+      "definition": "A structured write-up: Subjective, Objective, Assessment, and Plan.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "SOAP",
+        "SOAP note"
+      ]
+    },
+    "safety_net": {
+      "label": "Safety-net plan",
+      "definition": "Clear instructions about what to watch for, when to seek help, and how follow-up will happen.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "safety-net plan",
+        "safety net plan",
+        "safety-netting",
+        "safety netting"
+      ]
+    },
+    "red_flags": {
+      "label": "Red flags",
+      "definition": "Warning findings that may need urgent assessment or a change in the care plan.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "red flags",
+        "red flag"
+      ]
+    },
+    "medication_reconciliation": {
+      "label": "Medication reconciliation",
+      "definition": "Compare the patient’s actual medicine use with the record and resolve differences, including doses and nonprescription medicines.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "medication reconciliation",
+        "medication history"
+      ]
+    },
+    "open_question": {
+      "label": "Open-ended question",
+      "definition": "A question that lets the patient describe their experience in their own words instead of giving a yes/no answer.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "open-ended question",
+        "open question"
+      ]
+    },
+    "history_taking": {
+      "label": "History-taking",
+      "definition": "Gather the patient’s story, medical background, medication use, and relevant personal context.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "history-taking",
+        "history taking"
+      ]
+    },
+    "differential_short": {
+      "label": "Working differential",
+      "definition": "The current list of plausible explanations, updated as more evidence is gathered.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "working differential",
+        "differential and plan"
+      ]
+    },
+    "prior_records": {
+      "label": "Prior records",
+      "definition": "Earlier notes, test results, and reports that provide context for the current visit.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "prior labs",
+        "prior visit",
+        "prior visits",
+        "prior colonoscopy report",
+        "chart review"
+      ]
+    },
+    "self_intro": {
+      "label": "Self-introduction",
+      "definition": "Tell the patient your name and role, and explain why you are meeting today.",
+      "source": "Poscere: clinical encounter learning glossary",
+      "aliases": [
+        "self-introduction",
+        "introducing yourself",
+        "introduce yourself"
+      ]
+    },
+    "teach_back": {
+      "label": "Teach-back",
+      "definition": "Ask the patient to explain the plan in their own words so you can check how clearly you explained it.",
+      "source": "https://www.ahrq.gov/patient-safety/reports/engage/teachback.html",
+      "aliases": [
+        "teach-back",
+        "teach back"
+      ]
+    }
+  },
+  "focusAreas": {
+    "opening_and_purpose": "opening_and_purpose",
+    "rapport_respect_empathy": "rapport_respect_empathy",
+    "information_gathering": "information_gathering",
+    "listening_and_response_to_cues": "listening_and_response_to_cues",
+    "explanation_and_shared_decisions": "explanation_and_shared_decisions",
+    "clinical_reasoning_and_synthesis": "clinical_reasoning_and_synthesis",
+    "professionalism_safety_closure": "professionalism_safety_closure",
+    "intro": "intro",
+    "needs_dx": "needs_dx",
+    "needs_device": "needs_device",
+    "needs_aud": "needs_aud",
+    "needs_edu": "needs_edu",
+    "needs_comm": "needs_comm",
+    "audio_sev": "audio_sev",
+    "audio_banana": "audio_banana",
+    "exp_roles": "exp_roles",
+    "exp_rehab": "exp_rehab",
+    "exp_empathy": "exp_empathy",
+    "exp_questions": "exp_questions"
+  }
+}

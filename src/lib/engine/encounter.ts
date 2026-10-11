@@ -447,7 +447,7 @@ export async function* runTurn(encId: string, text: string): AsyncGenerator<Turn
     d.reveal.push(f);
   }
   releaseArtifacts(c, state);
-  if (endReason) state.endedBy = { by: "patient", reason: endReason, turn: state.turn };
+  if (endReason) state.endedBy = { by: "patient", reason: endReason, turn: state.turn, at: new Date().toISOString() };
   const showComfort = comfortShown(cfg);
   const inserted = addMessage(encId, state.turn, "patient", reply, {
     unsupported,
@@ -485,6 +485,7 @@ export async function runAction(encId: string, request: string) {
   if (!enc) throw new Error("Encounter not found");
   if (enc.row.status !== "active") throw new Error(enc.row.status === "paused" ? "Your instructor has paused this visit." : "This visit has ended.");
   const { c, cfg, state } = enc;
+  if (state.endedBy) throw new Error(CALL_ENDED_MESSAGE);
   const { matched, unmatched } = await matchActions(request, c.actions);
   const done: { name: string; result: string; abnormal: boolean; repeat: boolean }[] = [];
   for (const id of matched) {

@@ -1,25 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import type { ChartView } from "@/lib/engine/encounter";
-import ChartReview from "./chart/ChartReview";
-import { type Result } from "./chart/derive";
-import Orders from "./chart/Orders";
-import ResultsReview from "./chart/ResultsReview";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { ClinicalTerm } from "@/components/learning/Preferences";
 import Snapshot from "./chart/Snapshot";
-import Storyboard, { patientBits } from "./chart/Storyboard";
-import { ActivityLog, VisitNote } from "./chart/VisitNote";
-import { Count, LINK } from "./chart/ui";
+import ChartReview from "./chart/ChartReview";
+import ResultsReview from "./chart/ResultsReview";
+import { patientBits } from "./chart/Storyboard";
+import type { ChartView } from "@/lib/engine/encounter";
 
-type Tab = "snapshot" | "review" | "results" | "orders" | "visit" | "activity" | "team";
+type Tab =
+  | "summary"
+  | "visit"
+  | "examine"
+  | "notes"
+  | "results"
+  | "orders"
+  | "documents"
+  | "activity"
+  | "team";
 
-/** Below this panel width the patient panel starts collapsed to leave room for the chart. */
-const WIDE = 740;
+const KIND_LABEL: Record<string, string> = {
+  exam: "Remote exam",
+  vitals: "Vitals",
+  lab: "Lab",
+  imaging: "Imaging",
+  test: "Test",
+  record: "Record",
+  assessment: "Assessment",
+  procedure: "Procedure",
+};
 
-/**
- * The electronic chart beside the visit, laid out like a clinician's hospital chart: a patient panel on the left and
- * activity tabs (Snapshot, Chart Review, Results Review, Orders, This Visit) on top. It only ever receives the student-safe ChartView.
- */
+/** The electronic chart beside the visit. It only ever receives the student-safe ChartView. */
 export default function ChartPanel({
   chart,
   fresh,
@@ -27,187 +38,354 @@ export default function ChartPanel({
   ordering,
   locked,
   teamTab,
+  terminologyDisabled,
+  notes,
+  notesLabel,
+  onNotes,
   focus,
+  encounterStartedAt,
 }: {
   chart: ChartView;
+  focus?: { tab: "results" | "orders"; key: number };
+  encounterStartedAt: string;
   /** ids (facts, actions, documents) that arrived in the latest update, highlighted briefly */
   fresh: Set<string>;
   onOrder: (request: string) => Promise<void>;
   ordering: boolean;
   locked: boolean;
   teamTab?: ReactNode;
-  /** Bump `key` to bring a tab to the front (for example, "View in chart" on a result in the conversation). */
-  focus?: { tab: "results" | "orders"; key: number };
+  terminologyDisabled?: boolean;
+  notes: string;
+  notesLabel: string;
+  onNotes: (text: string) => void;
 }) {
-  const [tab, setTab] = useState<Tab>("snapshot");
-  const [seen, setSeen] = useState({ visit: 0, results: 0, orders: 0, review: 0 });
-  const [now] = useState(() => new Date());
-  const [width, setWidth] = useState(0);
-  const [sbOpen, setSbOpen] = useState<boolean | null>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  // Results that arrived after the chart opened, until the student has looked at them in Results Review.
-  const [mountIds] = useState(() => new Set(chart.results.map((r) => r.id)));
-  const known = useRef({ results: new Set(chart.results.map((r) => r.id)), unmatched: chart.unmatched.length });
-  const lastReq = useRef("");
-  const [pendingText, setPendingText] = useState<string | null>(null);
-  const [arrived, setArrived] = useState<Set<string>>(new Set());
-  const [requestOf, setRequestOf] = useState<Record<string, string>>({});
-  const [banner, setBanner] = useState<{ text: string; to: Tab } | null>(null);
-
-  useEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
-    ro.observe(el);
-    setWidth(el.clientWidth);
-    return () => ro.disconnect();
-  }, []);
-
-  // Notice orders that came back: highlight them, remember what was asked for, and offer a jump.
-  useEffect(() => {
-    const fresher = chart.results.filter((r) => !known.current.results.has(r.id));
-    const newUnmatched = chart.unmatched.length > known.current.unmatched;
-    if (fresher.length) {
-      fresher.forEach((r) => known.current.results.add(r.id));
-      setArrived((a) => new Set([...a, ...fresher.map((r) => r.id)]));
-      if (lastReq.current) setRequestOf((m) => ({ ...m, ...Object.fromEntries(fresher.map((r) => [r.id, lastReq.current])) }));
-      setBanner({ text: `New result: ${fresher[0].name}${fresher.length > 1 ? ` and ${fresher.length - 1} more` : ""}`, to: "results" });
-    } else if (newUnmatched) setBanner({ text: `No approved result for "${chart.unmatched[chart.unmatched.length - 1].request}"`, to: "orders" });
-    known.current.unmatched = chart.unmatched.length;
-  }, [chart.results, chart.unmatched]);
+  const [tab, setTab] = useState<Tab>("summary");
+  const [seen, setSeen] = useState({ visit: 0, results: 0, documents: 0 });
+  useEffect(() => { if (focus) setTab(focus.tab); }, [focus]);
+  const now = useMemo(() => {
+    const raw = encounterStartedAt.replace(" ", "T");
+    const date = new Date(raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw) ? raw : raw + "Z");
+    return Number.isFinite(date.getTime()) ? date : new Date(0);
+  }, [encounterStartedAt]);
+  const bits = useMemo(() => patientBits(chart), [chart]);
+  const resultWhen = (r: ChartView["results"][number]) => r.turn === 0 ? "Prior record" : `This visit · T${r.turn}`;
+  const newIds = fresh;
+  const [order, setOrder] = useState("");
 
   const counts = useMemo(
     () => ({
       visit: chart.sections.reduce((n, s) => n + s.items.length, 0),
-      results: chart.results.length,
-      orders: chart.results.length + chart.unmatched.length,
-      review: chart.artifacts.length,
+      results: chart.results.length + chart.unmatched.length,
+      documents: chart.artifacts.length,
     }),
     [chart],
   );
-  // The open tab counts as read; what it held is remembered when the student leaves it.
-  function go(t: Tab) {
-    if (tab === "visit" || tab === "results" || tab === "orders" || tab === "review") setSeen((s) => ({ ...s, [tab]: counts[tab] }));
-    if (tab === "results" && t !== "results") setArrived(new Set());
-    setTab(t);
-    setBanner((b) => (b && b.to === t ? null : b));
-  }
 
-  // A turn-0 result is from an earlier visit only if it was already there when the chart opened on a follow-up visit.
-  const followUp = /^Follow-up visit/i.test(chart.brief) || chart.sections.some((s) => s.items.some((i) => i.how === "record"));
-  const resultWhen = useCallback((r: Result) => (r.turn > 0 ? `after T${r.turn}` : followUp && mountIds.has(r.id) ? "earlier visit" : "start of visit"), [followUp, mountIds]);
-  const logWhen = (l: ChartView["log"][number]) => {
-    if (l.turn > 0) return l.kind === "result" ? `after T${l.turn}` : `T${l.turn}`;
-    if (l.kind === "result") {
-      const r = chart.results.find((x) => `${x.name}: ${x.result}` === l.text);
-      return r ? resultWhen(r) : "start of visit";
-    }
-    return followUp ? "on file" : "start of visit";
-  };
-
-  async function submitOrder(text: string) {
-    lastReq.current = text;
-    setPendingText(text);
-    try {
-      await onOrder(text);
-    } finally {
-      setPendingText(null);
-    }
-  }
-
-  // Asked from outside (the conversation's result card) to show a tab.
-  const [lastFocus, setLastFocus] = useState(focus?.key);
-  if (focus && focus.key !== lastFocus) {
-    setLastFocus(focus.key);
-    go(focus.tab);
-  }
-
-  const bits = patientBits(chart, now);
-  const open = sbOpen ?? width >= WIDE;
-  const unread = (k: keyof typeof seen) => (tab === k ? 0 : Math.max(0, counts[k] - seen[k]));
+  const allergies = chart.atStart.find((x) => /allerg/i.test(x.label));
+  const header = chart.atStart.filter((x) => !/allerg/i.test(x.label));
 
   const tabs: { id: Tab; label: string; unread?: number }[] = [
-    { id: "snapshot", label: "Snapshot" },
-    { id: "review", label: "Chart Review", unread: unread("review") },
-    { id: "results", label: "Results Review", unread: unread("results") },
-    { id: "orders", label: "Orders", unread: unread("orders") },
-    { id: "visit", label: "This Visit", unread: unread("visit") },
+    {
+      id: "summary",
+      label: "Patient chart",
+      unread: counts.visit - seen.visit,
+    },
+    { id: "examine", label: "Examine" },
+    { id: "notes", label: "Clinical notes" },
+    { id: "results", label: "Results" },
+    {
+      id: "orders",
+      label: "Order tests",
+      unread: counts.results - seen.results,
+    },
+    {
+      id: "documents",
+      label: "Documents",
+      unread: counts.documents - seen.documents,
+    },
     { id: "activity", label: "Activity" },
-    ...(teamTab ? [{ id: "team" as Tab, label: "Care Team" }] : []),
+    ...(teamTab ? [{ id: "team" as Tab, label: "Care team" }] : []),
   ];
 
+  async function submitOrder(e: React.FormEvent) {
+    e.preventDefault();
+    const text = order.trim();
+    if (!text || ordering) return;
+    setOrder("");
+    await onOrder(text);
+  }
+
   return (
-    <div ref={rootRef} className="flex h-full min-h-0 overflow-hidden rounded-lg border border-[#8d9bad] bg-white text-[14px] text-[#1a1a1a]">
-      <Storyboard chart={chart} bits={bits} open={open} onToggle={() => setSbOpen(!open)} onGo={() => go("snapshot")} />
-      <div className="@container flex min-w-0 flex-1 flex-col">
-        {!open && (
-          <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-0.5 border-b border-[#8d9bad] bg-[#e4e9ef] px-2.5 py-1 text-sm">
-            <span className="font-bold text-[#10253f]">{bits.display}</span>
-            <span className="text-[#44556b]">
-              {chart.patient.age} y.o. {bits.sexLabel} · DOB {bits.dob} · MRN {bits.mrn}
-            </span>
-            <span className={`rounded-sm px-1.5 text-xs font-semibold leading-5 ${bits.allergic ? "bg-[#c62828] text-white" : "bg-[#d5dde7] text-[#2b3a4c]"}`}>Allergies: {bits.allergyText || "not on file"}</span>
+    <div className="encounter-chart flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      {/* Patient header strip */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-slate-300 bg-slate-800 px-4 py-2 text-white">
+        <div>
+          <div className="text-[15px] font-semibold leading-tight">
+            {chart.patient.name}
+          </div>
+          <div className="text-xs text-slate-300">
+            {chart.patient.age} y · {chart.patient.sex} ·{" "}
+            {chart.patient.pronouns}
+          </div>
+        </div>
+        <div className="min-w-0 flex-1 text-xs">
+          <div className="text-slate-400">Reason for visit</div>
+          <div className="truncate text-slate-100">{chart.chiefComplaint}</div>
+        </div>
+        <div
+          className={`rounded px-2 py-1 text-xs ${allergies && !/^(none|nkda|no known)/i.test(allergies.value.trim()) ? "bg-rose-600 text-white" : "bg-slate-700 text-slate-200"}`}
+        >
+          <span className="opacity-80">Allergies: </span>
+          {allergies ? allergies.value : "Not on file"}
+        </div>
+      </div>
+
+      {header.filter((x) =>
+        /vital|blood pressure|heart rate|oxygen|temperature/i.test(x.label),
+      ).length > 0 && (
+        <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-blue-50 px-4 py-2">
+          {header
+            .filter((x) =>
+              /vital|blood pressure|heart rate|oxygen|temperature/i.test(
+                x.label,
+              ),
+            )
+            .map((x, i) => (
+              <span key={i} className="text-xs text-slate-700">
+                <strong>{x.label}:</strong> {x.value}
+              </span>
+            ))}
+        </div>
+      )}
+      <div className="flex gap-0.5 overflow-x-auto border-b border-slate-200 bg-slate-100 px-2 pt-1.5">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => {
+              setTab(t.id);
+              setSeen((s) => ({
+                ...s,
+                visit: t.id === "summary" ? counts.visit : s.visit,
+                results:
+                  t.id === "results" || t.id === "examine"
+                    ? counts.results
+                    : s.results,
+                documents:
+                  t.id === "documents" ? counts.documents : s.documents,
+              }));
+            }}
+            aria-pressed={tab === t.id}
+            className={`flex items-center gap-1.5 whitespace-nowrap rounded-t-md border border-b-0 px-3 py-1.5 text-[13px] ${tab === t.id ? "border-slate-300 bg-white font-medium text-slate-900" : "border-transparent text-slate-600 hover:bg-slate-200"}`}
+          >
+            {t.label}
+            {!!t.unread && t.unread > 0 && (
+              <span className="rounded-full bg-brand-600 px-1.5 text-[10px] font-semibold leading-4 text-white">
+                {t.unread}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        {tab === "notes" && (
+          <div>
+            <label
+              htmlFor="clinical-note"
+              className="mb-2 block text-sm font-semibold"
+            >
+              {notesLabel}
+            </label>
+            <textarea
+              id="clinical-note"
+              value={notes}
+              onChange={(e) => onNotes(e.target.value)}
+              rows={10}
+              className="w-full rounded-xl border border-slate-300 p-3 text-sm"
+              placeholder="Record your observations in your own words…"
+            />
+            <p className="mt-2 text-xs text-slate-500">
+              This draft is kept in this browser tab and carries into your
+              write-up. It is saved to the server when you submit the visit.
+            </p>
           </div>
         )}
-        <div role="tablist" className="flex shrink-0 gap-0 overflow-x-auto border-b border-[#8d9bad] bg-[#ccd6e2] px-1.5 pt-1.5">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              role="tab"
-              aria-selected={tab === t.id}
-              onClick={() => go(t.id)}
-              className={`relative -mb-px flex items-center gap-1 whitespace-nowrap rounded-t border border-b-0 px-1.5 py-1.5 text-sm ${tab === t.id ? "border-[#8d9bad] border-t-[3px] border-t-[#1d5fb8] bg-white pt-1 font-semibold text-[#10253f]" : "border-transparent text-[#1f3a5f] hover:bg-[#dde5ee]"}`}
-            >
-              {t.label}
-              {/* Unread counts sit on the tab's corner so they never widen the strip. */}
-              {!!t.unread && t.unread > 0 && (
-                <span className="pointer-events-none absolute -right-1.5 -top-1 origin-top-right scale-90">
-                  <Count n={t.unread} />
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-        {banner && tab !== banner.to && (
-          <div className="flex shrink-0 items-center gap-2 border-b border-[#e6c200] bg-[#fff4c2] px-3 py-1.5 text-sm text-[#4a3800]">
-            <span className="font-semibold">{banner.text}</span>
-            <button onClick={() => go(banner.to)} className={LINK}>
-              {banner.to === "results" ? "Open in Results Review" : "View in Orders"}
-            </button>
-            <button onClick={() => setBanner(null)} aria-label="Dismiss" className="ml-auto text-[#4a3800] hover:underline">
-              Dismiss
-            </button>
+        {tab === "summary" && (
+          <div className="space-y-3">
+            <p className="rounded-md bg-slate-50 px-3 py-2 text-[13px] text-slate-700">
+              {chart.setting}
+            </p>
+            <Snapshot chart={chart} bits={bits} onGo={tab => setTab(tab === "review" ? "documents" : "results")} />
+            <p className="text-xs text-slate-500">
+              History you take during the call is filed below in your patient
+              chart. Results appear when you request an exam, test or record.
+            </p>
           </div>
         )}
 
-        <div className="min-h-0 flex-1 bg-white">
-          {tab === "review" ? (
-            <ChartReview chart={chart} now={now} fresh={fresh} resultWhen={resultWhen} newIds={arrived} />
-          ) : (
-            <div className="h-full overflow-y-auto bg-[#f2f5f8]">
-              {tab === "snapshot" && <Snapshot chart={chart} bits={bits} onGo={(t) => go(t)} />}
-              {tab === "results" && <ResultsReview chart={chart} now={now} resultWhen={resultWhen} newIds={arrived} fresh={fresh} />}
-              {tab === "orders" && (
-                <Orders
-                  chart={chart}
-                  ordering={ordering}
-                  locked={locked}
-                  pendingText={ordering ? pendingText : null}
-                  onSubmit={submitOrder}
-                  newIds={arrived}
-                  fresh={fresh}
-                  requestOf={requestOf}
-                  resultWhen={resultWhen}
-                  onOpenResult={() => go("results")}
+        {tab === "summary" && (
+          <div className="space-y-4">
+            {chart.sections.length === 0 && (
+              <p className="text-sm text-slate-500">
+                Nothing documented yet. What the patient tells you is filed here
+                as you go.
+              </p>
+            )}
+            {chart.sections.map((s) => (
+              <section key={s.category}>
+                <h3 className="mb-1 border-b border-slate-200 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  {s.label}
+                </h3>
+                <ul className="space-y-0.5">
+                  {s.items.map((it) => (
+                    <li
+                      key={it.id}
+                      className={`flex items-start gap-2 rounded px-1.5 py-1 text-[13px] ${fresh.has(it.id) ? "flash-new" : ""}`}
+                    >
+                      <span
+                        className="mt-0.5 shrink-0 rounded bg-slate-100 px-1 text-[10px] tabular-nums text-slate-500"
+                        data-tooltip={
+                          it.how === "record"
+                            ? "Already on record from an earlier encounter"
+                            : `Turn ${it.turn}`
+                        }
+                      >
+                        {it.how === "record" ? "REC" : `T${it.turn}`}
+                      </span>
+                      <span className="text-slate-800">{it.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {(tab === "orders" || tab === "examine") && (
+          <div className="space-y-4">
+            <form
+              onSubmit={submitOrder}
+              className="rounded-md border border-slate-200 bg-slate-50 p-3"
+            >
+              <label className="mb-1 block text-xs font-medium text-slate-600">
+                {tab === "examine"
+                  ? "Request a guided examination"
+                  : "Order a test or request a record"}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  aria-label={
+                    tab === "examine"
+                      ? "Examination request"
+                      : "Test or record request"
+                  }
+                  value={order}
+                  onChange={(e) => setOrder(e.target.value)}
+                  disabled={locked || ordering}
+                  placeholder={
+                    tab === "examine"
+                      ? "Describe the examination you want to request"
+                      : "Describe the test or record you want to request"
+                  }
+                  className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 disabled:bg-slate-100"
                 />
-              )}
-              {tab === "visit" && <VisitNote chart={chart} fresh={fresh} newIds={arrived} resultWhen={resultWhen} />}
-              {tab === "activity" && <ActivityLog chart={chart} logWhen={logWhen} />}
-              {tab === "team" && <div className="bg-white p-3">{teamTab}</div>}
-            </div>
-          )}
-        </div>
+                <button
+                  disabled={locked || ordering || !order.trim()}
+                  className="rounded-md bg-slate-800 px-3 py-1.5 text-sm font-medium text-white disabled:bg-slate-300"
+                >
+                  {ordering ? "Sending" : "Request"}
+                </button>
+              </div>
+              <p className="mt-1.5 text-[11px] text-slate-500">
+                Only results approved for this case can come back. Exams are
+                guided over video.
+              </p>
+            </form>
+            {chart.results.length === 0 && chart.unmatched.length === 0 && (
+              <p className="text-sm text-slate-500">No results yet.</p>
+            )}
+            <ul className="space-y-2">
+              {chart.results.map((r) => (
+                <li
+                  key={r.id}
+                  className={`rounded-md border p-3 ${r.abnormal ? "border-amber-300 bg-amber-50/60" : "border-slate-200"} ${fresh.has(r.id) ? "flash-new" : ""}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] font-semibold text-slate-900">
+                      {r.name}{" "}
+                      <ClinicalTerm
+                        text={r.name}
+                        disabled={terminologyDisabled}
+                      />
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                      {r.abnormal && (
+                        <span className="rounded bg-amber-200 px-1.5 font-medium text-amber-900">
+                          Abnormal
+                        </span>
+                      )}
+                      {KIND_LABEL[r.kind] || r.kind} ·{" "}
+                      {r.turn > 0 ? `after T${r.turn}` : "earlier visit"}
+                    </span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap text-[13px] leading-relaxed text-slate-800">
+                    {r.result}
+                  </p>
+                </li>
+              ))}
+              {chart.unmatched.map((u, i) => (
+                <li
+                  key={"u" + i}
+                  className="rounded-md border border-dashed border-slate-300 p-3 text-[13px] text-slate-600"
+                >
+                  <span className="font-medium text-slate-800">
+                    {u.request}
+                  </span>
+                  : no approved result is available for this in the case file.
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {tab === "results" && <ResultsReview chart={chart} now={now} fresh={fresh} newIds={newIds} resultWhen={resultWhen} />}
+        {tab === "documents" && <div className="flex min-h-[24rem] flex-col"><ChartReview chart={chart} now={now} fresh={fresh} newIds={newIds} resultWhen={resultWhen} /></div>}
+
+        {tab === "activity" && (
+          <div>
+            <p className="mb-2 text-xs text-slate-500">
+              Everything released to you in this visit, in order.
+            </p>
+            {chart.log.length === 0 && (
+              <p className="text-sm text-slate-500">Nothing yet.</p>
+            )}
+            <ol className="space-y-1">
+              {chart.log.map((l, i) => (
+                <li key={i} className="flex items-start gap-2 text-[13px]">
+                  <span className="mt-0.5 w-14 shrink-0 whitespace-nowrap rounded bg-slate-100 px-1 text-center text-[10px] tabular-nums text-slate-500">
+                    {l.turn <= 0
+                      ? "earlier"
+                      : l.kind === "result"
+                        ? `after T${l.turn}`
+                        : `T${l.turn}`}
+                  </span>
+                  <span
+                    className={`mt-0.5 w-16 shrink-0 text-[10px] font-medium uppercase tracking-wide ${l.kind === "fact" ? "text-brand-600" : l.kind === "result" ? "text-amber-700" : "text-violet-700"}`}
+                  >
+                    {l.kind === "fact"
+                      ? "History"
+                      : l.kind === "result"
+                        ? "Result"
+                        : "Document"}
+                  </span>
+                  <span className="text-slate-800">{l.text}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {tab === "team" && teamTab}
       </div>
     </div>
   );

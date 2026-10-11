@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   serverExternalPackages: ["better-sqlite3"],
   turbopack: {
+    root: process.env.NEXT_TURBOPACK_ROOT || process.cwd(),
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

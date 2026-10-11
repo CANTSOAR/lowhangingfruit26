@@ -1,4 +1,5 @@
 "use client";
+import FocusArea from "@/components/learning/FocusArea";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 // Chart tokens. One series colour throughout (checked with the dataviz palette validator against a
@@ -48,7 +49,7 @@ export function BarList({ items, max = 100, unit }: { items: BarItem[]; max?: nu
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-1.5 text-sm text-slate-900">
                 {it.tag && <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${TAG[it.tag.tone]}`}>{it.tag.text}</span>}
-                <span>{it.label}</span>
+                <span><FocusArea area={it.key} label={it.label} /></span>
               </div>
               {it.sub && <div className="mt-0.5 text-xs text-slate-500">{it.sub}</div>}
             </div>
@@ -126,7 +127,7 @@ export function SkillDots({ items, ticks, lo, hi }: { items: SkillDot[]; ticks: 
       <ul>
         {items.map((it) => (
           <li key={it.key} tabIndex={0} className={`${cols} group rounded-md py-1.5 outline-none hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand-200`}>
-            <span className="pl-1 text-sm leading-tight text-slate-800">{it.name}</span>
+            <span className="pl-1 text-sm leading-tight text-slate-800"><FocusArea area={it.key} label={it.name} /></span>
             <div className="relative h-6">
               {ticks.map((t) => (
                 <span key={t.level} className="absolute inset-y-0 w-px" style={{ left: `${x(t.rating)}%`, background: GRID }} />
@@ -135,7 +136,7 @@ export function SkillDots({ items, ticks, lo, hi }: { items: SkillDot[]; ticks: 
               <span className="absolute top-1/2 -ml-[7px] -mt-[7px] h-3.5 w-3.5 rounded-full ring-2 ring-white" style={{ left: `${x(it.rating)}%`, background: SERIES }}>
                 <Tip>
                   <span className="block font-semibold text-slate-900">Rating {Math.round(it.rating)}</span>
-                  <span className="block">{it.name}</span>
+                  <span className="block"><FocusArea area={it.key} label={it.name} /></span>
                   <span className="block text-slate-500">
                     From {it.n} scored visit{it.n === 1 ? "" : "s"}
                   </span>

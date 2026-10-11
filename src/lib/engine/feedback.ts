@@ -1,3 +1,4 @@
+import { validHighlights } from "../feedback-text";
 import { recordSkill } from "../adaptive";
 import { all, parse, run } from "../db";
 import { chatJSON, chatText, MODELS } from "../llm";
@@ -9,7 +10,8 @@ import { caseFacts } from "./gatekeeper";
 import { startVisible } from "./startVisible";
 
 const str = { type: "string" };
-const noted = { type: "array", items: { type: "object", required: ["text"], properties: { text: str, turn: { type: "integer" } } } };
+const highlightSchema = { type: "array", maxItems: 5, description: "Exact short phrases from this text without ** markers. Positive means demonstrated strength, negative means a gap, and partial means incomplete success.", items: { type: "object", required: ["text", "tone"], properties: { text: str, tone: { type: "string", enum: ["positive", "negative", "partial"] } } } };
+const noted = { type: "array", items: { type: "object", required: ["text"], properties: { text: str, turn: { type: "integer" }, highlights: highlightSchema } } };
 
 function schema(rubric: Rubric) {
   const isCheck = rubric.type === "checklist";
@@ -28,7 +30,8 @@ function schema(rubric: Rubric) {
             score: isCheck
               ? { type: "number", description: "Points awarded, 0 up to the item's maximum" }
               : { type: ["integer", "null"], description: "4, 3, 2, 1, or null for N/A when the scenario gave no chance to observe it" },
-            rationale: { type: "string", description: "Why this score, in 1-2 sentences, tied to the descriptor" },
+            rationale: { type: "string", description: "Why this score, in 1-2 sentences, tied to the descriptor. Use **short key phrases** for emphasis and provide their tones in highlights." },
+            highlights: { type: "array", maxItems: 5, description: "A few exact short snippets from the rationale, excluding ** markers, with their meaning. Positive = demonstrated strength; negative = absent or unsafe behaviour; partial = incomplete success. Do not highlight whole paragraphs.", items: { type: "object", required: ["text", "tone"], properties: { text: str, tone: { type: "string", enum: ["positive", "negative", "partial"] } } } },
             evidence: {
               type: "array",
               description: "1-3 moments from the transcript that justify the score",
@@ -67,6 +70,7 @@ function schema(rubric: Rubric) {
       wrapUpReview: { type: "string", description: "Assessment of the student's written wrap-up against the answer key" },
       nextAttempt: { type: "array", items: str, description: "3-5 concrete things to do differently next time, each phrased as an action, ideally with example wording" },
       summary: { type: "string", description: "3-4 sentence overall summary addressed to the student as 'you'" },
+      summaryHighlights: highlightSchema,
     },
   };
 }
@@ -79,7 +83,9 @@ Rules:
 - Judge clinical accuracy only against the case answer key and the supplied knowledge sources. If something is outside them, say it could not be verified rather than calling it wrong.
 - Judge the student against what their profession is expected to do; do not penalize a dietetics student for not forming a medical differential.
 - Feedback is addressed to the student as "you". Be concrete: say what was said, why it mattered, and what to say instead.
-- A short or abandoned encounter gets low scores, not N/A.`;
+- A short or abandoned encounter gets low scores, not N/A.
+- In each domain rationale, put ** around 1-3 short phrases worth skimming, and include exact snippets without markers in highlights with positive, negative or partial tones. Distinguish strengths from gaps even within one sentence. Never insert formatting markers into transcript evidence quotes. These are reading aids; do not change scores to fit highlight colours.
+- Also provide summaryHighlights for 2-5 exact short phrases in the summary, and highlights in each strengths and improvements entry. Only demonstrated performance is positive; a recommendation or hypothetical benefit is not an achieved strength. Use negative for actual gaps and partial for incomplete performance. Keep the full prose intact.`;
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 
@@ -208,10 +214,10 @@ STUDENT'S WRITTEN WRAP-UP
 ${role.wrapUp.map((f) => `${f.label}:\n${wrap[f.id] || "(left blank)"}`).join("\n\n")}`;
 
   type Raw = {
-    domains: { key: string; score: number | null; rationale: string; evidence: { turn: number; quote: string; note: string }[] }[];
+    domains: { key: string; score: number | null; rationale: string; highlights?: DomainScore["highlights"]; evidence: { turn: number; quote: string; note: string }[] }[];
     objectives: { id: string; met: "met" | "partial" | "not_met"; comment: string }[];
     mismatches?: { id: string; noticed: boolean; comment: string }[];
-  } & Pick<Feedback, "interview" | "strengths" | "improvements" | "safetyConcerns" | "accuracyIssues" | "wrapUpReview" | "nextAttempt" | "summary">;
+  } & Pick<Feedback, "interview" | "strengths" | "improvements" | "safetyConcerns" | "accuracyIssues" | "wrapUpReview" | "nextAttempt" | "summary" | "summaryHighlights">;
 
   // The patient's memory of this visit does not depend on the scoring, so it runs alongside it.
   const remembered = !row.parent_id && cfg.mode !== "journey" ? rememberVisit(encId).catch((e) => console.error("rememberVisit", e)) : Promise.resolve();
@@ -241,7 +247,7 @@ ${role.wrapUp.map((f) => `${f.label}:\n${wrap[f.id] || "(left blank)"}`).join("\
     const r = raw.domains?.find((x) => x.key === d.key);
     let score: number | null = r ? r.score : null;
     if (score !== null) score = rubric.type === "domain4" ? Math.max(1, Math.min(4, Math.round(score))) : Math.max(0, Math.min(d.max, score));
-    return { key: d.key, name: d.name, score, max: d.max, rationale: r?.rationale || "Not assessed.", evidence: groundEvidence(r?.evidence || [], spoken) };
+    return { key: d.key, name: d.name, score, max: d.max, rationale: r?.rationale || "Not assessed.", highlights: validHighlights(r?.rationale || "", r?.highlights), evidence: groundEvidence(r?.evidence || [], spoken) };
   });
   const scored = domains.filter((d) => d.score !== null);
   const total = scored.reduce((s, d) => s + (d.score as number), 0);
@@ -277,8 +283,8 @@ ${role.wrapUp.map((f) => `${f.label}:\n${wrap[f.id] || "(left blank)"}`).join("\
       return { id: o.id, text: o.text, met, comment: r?.comment || "" };
     }),
     interview: raw.interview || { structure: "", sequencing: "", questionMix: "" },
-    strengths: raw.strengths || [],
-    improvements: raw.improvements || [],
+    strengths: (raw.strengths || []).map(s => ({ ...s, highlights: validHighlights(s.text, s.highlights) })),
+    improvements: (raw.improvements || []).map(s => ({ ...s, highlights: validHighlights(s.text, s.highlights) })),
     safetyConcerns: raw.safetyConcerns || [],
     accuracyIssues: raw.accuracyIssues || [],
     wrapUpReview: raw.wrapUpReview || "",
@@ -288,6 +294,7 @@ ${role.wrapUp.map((f) => `${f.label}:\n${wrap[f.id] || "(left blank)"}`).join("\
     }),
     nextAttempt: raw.nextAttempt || [],
     summary: raw.summary || "",
+    summaryHighlights: validHighlights(raw.summary || "", raw.summaryHighlights),
   };
 
   run("UPDATE encounters SET feedback = ?, score = ?, status = 'scored', ended_at = COALESCE(ended_at, datetime('now')) WHERE id = ?", JSON.stringify(feedback), percent, encId);

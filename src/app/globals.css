@@ -24,12 +24,109 @@ body {
 }
 
 @keyframes fadein {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
-.fade-in { animation: fadein 0.35s ease-out; }
+.fade-in {
+  animation: fadein 0.35s ease-out;
+}
 @keyframes flash {
-  from { background-color: #fef3c7; }
-  to { background-color: transparent; }
+  from {
+    background-color: #fef3c7;
+  }
+  to {
+    background-color: transparent;
+  }
 }
-.flash-new { animation: flash 2.5s ease-out; }
+.flash-new {
+  animation: flash 2.5s ease-out;
+}
+
+:root {
+  --motion-fast: 150ms;
+  --motion-normal: 250ms;
+  --motion-slow: 500ms;
+}
+body {
+  background: #f3f6fc;
+}
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+button:not(:disabled),
+a {
+  transition:
+    background-color var(--motion-fast),
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 3px;
+}
+.learning-dialog {
+  margin: auto;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+.learning-dialog[open] {
+  animation: fadein var(--motion-normal) ease-out;
+}
+.patient-card {
+  transition:
+    transform var(--motion-normal),
+    box-shadow var(--motion-normal);
+}
+.patient-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px #17255410;
+}
+[data-plain-language="off"] .term-help {
+  display: none;
+}
+.encounter-layout {
+  min-height: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .patient-card:hover {
+    transform: none;
+  }
+}
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+[data-motion="reduced"] .patient-card:hover {
+  transform: none;
+}
+
+/* Native popovers live above cards without taking space in their layout. */
+.term-popover {
+  inset: auto;
+  max-height: min(300px, calc(100dvh - 2rem));
+  overflow-y: auto;
+}
+.inline-term-trigger { font: inherit; color: inherit; text-align: inherit; cursor: help; }
+.inline-term-plain { display: none; }
+[data-plain-language="off"] .inline-term-trigger { display: none; }
+[data-plain-language="off"] .inline-term-plain { display: inline; }

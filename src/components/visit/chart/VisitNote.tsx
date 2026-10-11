@@ -26,7 +26,7 @@ export function VisitNote({ chart, fresh, newIds, resultWhen }: { chart: ChartVi
           <ul>
             {s.items.map((it, i) => (
               <li key={it.id} className={`flex items-start gap-2 px-3 py-1.5 text-sm text-[#1a1a1a] ${i % 2 ? "bg-[#f5f8fb]" : ""} ${fresh.has(it.id) ? "flash-new" : ""}`}>
-                <span className="mt-0.5 w-12 shrink-0 text-xs tabular-nums text-[#5d6b7c]" title={it.how === "record" ? "Already on record from an earlier encounter" : `Turn ${it.turn}`}>
+                <span className="mt-0.5 w-12 shrink-0 text-xs tabular-nums text-[#5d6b7c]" data-tooltip={it.how === "record" ? "Already on record from an earlier encounter" : `Turn ${it.turn}`}>
                   {it.how === "record" ? "On file" : `T${it.turn}`}
                 </span>
                 <span className="min-w-0 flex-1">{it.text}</span>

@@ -306,6 +306,8 @@ export interface PatientEnded {
   by: "patient";
   reason: "closed" | "upset" | "time";
   turn: number;
+  /** When the goodbye completed; older records may lack this. */
+  at?: string;
 }
 
 /** One reason the comfort meter moved on a turn, in plain student-facing words. */
@@ -355,6 +357,7 @@ export interface DomainScore {
   score: number | null; // null = N/A
   max: number;
   rationale: string;
+  highlights?: { text: string; tone: "positive" | "negative" | "partial" }[];
   evidence: { turn: number; quote: string; note: string }[];
 }
 
@@ -378,14 +381,15 @@ export interface Feedback {
   callEndedBy?: PatientEnded;
   objectives: { id: string; text: string; met: "met" | "partial" | "not_met"; comment: string }[];
   interview: { structure: string; sequencing: string; questionMix: string };
-  strengths: { text: string; turn?: number }[];
-  improvements: { text: string; turn?: number }[];
+  strengths: { text: string; turn?: number; highlights?: DomainScore["highlights"] }[];
+  improvements: { text: string; turn?: number; highlights?: DomainScore["highlights"] }[];
   safetyConcerns: { text: string; turn?: number }[];
   accuracyIssues: { claim: string; correction: string; turn?: number }[];
   wrapUpReview: string;
   mismatches?: { id: string; patientClaim: string; recordEvidence: string; noticed: boolean; comment: string }[];
   nextAttempt: string[];
   summary: string;
+  summaryHighlights?: DomainScore["highlights"];
 }
 
 export type UserRole = "admin" | "faculty" | "student";

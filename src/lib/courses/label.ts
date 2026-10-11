@@ -44,5 +44,5 @@ export function studentCaseLabelFromJson(profileJson: string | null | undefined)
 export function studentJourneyLabel(patientName: string | null | undefined, roleTitles: string[]): { title: string; roles: string } {
   const name = tidy(patientName) || "Patient";
   const roles = roleTitles.map(tidy).filter(Boolean);
-  return { title: `${name}: care journey`, roles: roles.join(", ") };
+  return { title: name, roles: roles.join(", ") };
 }

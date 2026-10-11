@@ -48,7 +48,7 @@ function TableEditor({ table, onChange }: { table: ArtifactTable; onChange: (t: 
                     {table.columns.length > 1 && (
                       <button
                         type="button"
-                        title="Delete this column"
+                        data-tooltip="Delete this column"
                         aria-label={`Delete column ${c || i + 1}`}
                         className="px-1 text-xs text-slate-400 hover:text-rose-700"
                         onClick={() => onChange({ columns: table.columns.filter((_, j) => j !== i), rows: table.rows.map((r) => ({ ...r, cells: r.cells.filter((_, j) => j !== i) })) })}
@@ -59,7 +59,7 @@ function TableEditor({ table, onChange }: { table: ArtifactTable; onChange: (t: 
                   </div>
                 </th>
               ))}
-              <th className="p-0.5 text-[11px] font-medium text-slate-500" title="H = high, L = low, A = abnormal">
+              <th className="p-0.5 text-[11px] font-medium text-slate-500" data-tooltip="H = high, L = low, A = abnormal">
                 Flag
               </th>
               <th />
@@ -82,7 +82,7 @@ function TableEditor({ table, onChange }: { table: ArtifactTable; onChange: (t: 
                   </select>
                 </td>
                 <td className="p-0.5">
-                  <button type="button" title="Delete this row" aria-label={`Delete row ${i + 1}`} className="px-1 text-xs text-slate-400 hover:text-rose-700" onClick={() => onChange({ ...table, rows: table.rows.filter((_, j) => j !== i) })}>
+                  <button type="button" data-tooltip="Delete this row" aria-label={`Delete row ${i + 1}`} className="px-1 text-xs text-slate-400 hover:text-rose-700" onClick={() => onChange({ ...table, rows: table.rows.filter((_, j) => j !== i) })}>
                     x
                   </button>
                 </td>

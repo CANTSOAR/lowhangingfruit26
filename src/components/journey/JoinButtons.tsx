@@ -1,5 +1,7 @@
 "use client";
 
+import { SmartText } from "@/components/learning/SmartHighlights";
+import ProfessionIcon from "@/components/learning/ProfessionIcon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge, Button } from "@/components/ui";
@@ -18,14 +20,26 @@ export interface JoinStage {
 }
 
 /** "Join as ..." for each encounter of a journey. The AI plays every role the student does not take. */
-export default function JoinButtons({ journeyId, stages, assignmentId }: { journeyId: string; stages: JoinStage[]; assignmentId?: string }) {
+export default function JoinButtons({
+  journeyId,
+  stages,
+  assignmentId,
+}: {
+  journeyId: string;
+  stages: JoinStage[];
+  assignmentId?: string;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   async function join(stageId: string) {
     setBusy(stageId);
     setErr("");
-    const r = await post<{ id: string }>("/api/journeys/runs", { journeyId, stageId, assignmentId });
+    const r = await post<{ id: string }>("/api/journeys/runs", {
+      journeyId,
+      stageId,
+      assignmentId,
+    });
     if (r.error || !r.id) {
       setBusy("");
       return setErr(r.error || "Could not start the journey.");
@@ -34,21 +48,52 @@ export default function JoinButtons({ journeyId, stages, assignmentId }: { journ
   }
   return (
     <div>
-      <ol className="space-y-3">
+      <ol className="ml-4 space-y-5 border-l-2 border-blue-200 pl-6">
         {stages.map((s) => (
-          <li key={s.id} className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[1fr_auto] sm:items-center">
+          <li
+            key={s.id}
+            className="relative grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-[1fr_auto] sm:items-center"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute -left-10 top-5 grid h-7 w-7 place-items-center rounded-full border-4 border-[#f3f6fc] bg-brand-600 text-xs font-semibold text-white"
+            >
+              {s.order}
+            </span>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500">Encounter {s.order}</span>
-                <span className="text-xs text-slate-400">{s.simTime}{s.visitLabel ? ` · ${s.visitLabel}` : ""}</span>
-                {s.suggested && <Badge tone="teal">Matches your profession</Badge>}
+                <span className="text-xs font-semibold text-slate-500">
+                  Encounter {s.order}
+                </span>
+                <span className="text-xs text-slate-400">
+                  {s.simTime}
+                  {s.visitLabel ? ` · ${s.visitLabel}` : ""}
+                </span>
+                {s.suggested && (
+                  <Badge tone="teal">Matches your profession</Badge>
+                )}
               </div>
-              <h3 className="mt-0.5 text-base font-semibold text-slate-900">{s.roleTitle}</h3>
-              <p className="mt-1 text-sm text-slate-700">{s.focus}</p>
-              <p className="mt-1 text-xs text-slate-500">If you do not take this role, the AI plays {s.clinicianName} ({s.clinicianRole}).</p>
+              <h3 className="mt-1 flex items-center gap-2 text-base font-semibold text-slate-900">
+                <ProfessionIcon area={s.roleTitle} />
+                {s.roleTitle}
+              </h3>
+              <p className="mt-1 text-sm text-slate-700"><SmartText text={s.focus} /></p>
+              <details className="mt-3 text-xs text-slate-500">
+                <summary className="cursor-pointer">Your AI colleague</summary>
+                <p className="mt-1">
+                  If you do not take this role, the AI plays {s.clinicianName} (
+                  {s.clinicianRole}).
+                </p>
+              </details>
             </div>
-            <Button onClick={() => join(s.id)} disabled={!!busy} variant={s.suggested ? "primary" : "secondary"}>
-              {busy === s.id ? "Starting" : `Join as ${s.roleTitle.toLowerCase()}`}
+            <Button
+              onClick={() => join(s.id)}
+              disabled={!!busy}
+              variant={s.suggested ? "primary" : "secondary"}
+            >
+              {busy === s.id
+                ? "Starting"
+                : `Join as ${s.roleTitle.toLowerCase()}`}
             </Button>
           </li>
         ))}

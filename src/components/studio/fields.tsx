@@ -60,7 +60,7 @@ export function StringList({ label, hint, items, onChange, placeholder, addLabel
 
 export function RemoveButton({ onClick, label = "Delete" }: { onClick: () => void; label?: string }) {
   return (
-    <button type="button" onClick={onClick} title={label} aria-label={label} className="mt-0.5 shrink-0 rounded px-1.5 py-1 text-xs text-slate-400 hover:bg-rose-50 hover:text-rose-700">
+    <button type="button" onClick={onClick} data-tooltip={label} aria-label={label} className="mt-0.5 shrink-0 rounded px-1.5 py-1 text-xs text-slate-400 hover:bg-rose-50 hover:text-rose-700">
       {label}
     </button>
   );
