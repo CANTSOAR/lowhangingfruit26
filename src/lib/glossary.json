@@ -3,7 +3,7 @@
   "terms": {
     "adaptive": {
       "label": "Adaptive practice",
-      "definition": "The next difficulty is picked from your results. Patient behaviour is adjusted to exercise your weakest rubric domain.",
+      "definition": "The next difficulty is picked from your results. Patient behavior is adjusted to exercise your weakest rubric domain.",
       "source": "Poscere: src/lib/adaptive.ts"
     },
     "rubric": {

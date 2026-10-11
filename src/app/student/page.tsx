@@ -128,7 +128,7 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
       />
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="space-y-5">
+        <div className="flex flex-col gap-5">
           {/* ---------- Adaptive session ---------- */}
           <Card className="overflow-hidden border-brand-100">
             <div className="grid grid-cols-1 sm:grid-cols-[minmax(150px,2fr)_minmax(0,3fr)]">
@@ -191,7 +191,7 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
           </Card>
 
           {/* ---------- Assignments ---------- */}
-          <Card id="assignments" className="scroll-mt-4">
+          <Card id="assignments" className={`scroll-mt-4 ${open.length ? "max-lg:order-first" : ""}`}>
             <CardHeader
               title="Assignments"
               subtitle={

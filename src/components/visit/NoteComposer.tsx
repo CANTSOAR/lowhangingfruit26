@@ -151,7 +151,7 @@ export default function NoteComposer({
                   affect your score.
                 </p>
                 {[
-                  "Summarised with the patient",
+                  "Summarized with the patient",
                   "Checked their understanding",
                   "Agreed next steps",
                 ].map((label) => (

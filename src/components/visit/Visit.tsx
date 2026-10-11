@@ -202,7 +202,7 @@ export default function Visit({
   const [scoring, setScoring] = useState(false);
   const [submissionSaved, setSubmissionSaved] = useState(false);
   const [fullTranscript, setFullTranscript] = useState(true);
-  const [lastDelta, setLastDelta] = useState(0);
+  const [, setLastDelta] = useState(0);
   const [turnComfort, setTurnComfort] = useState<{ delta: number; reasons: ComfortReason[]; fade: boolean } | null>(null);
   const [chartFocus, setChartFocus] = useState<{ tab: "results" | "orders"; key: number }>();
   const [callEnd, setCallEnd] = useState<PatientEnded | null>(null);
@@ -794,30 +794,30 @@ export default function Visit({
         <span className="truncate text-slate-700">
           <span className="font-medium text-slate-900">{p.name}</span>
         </span>
-        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
+        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">
           {MODE_LABEL[data.mode] || data.mode}
         </span>
-        <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600 sm:inline">
+        <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 sm:inline">
           Difficulty: Level {data.level}
         </span>
         {data.visitNumber > 1 ? (
-          <span className="hidden rounded bg-sky-100 px-1.5 py-0.5 text-[11px] font-medium text-sky-800 sm:inline">
+          <span className="hidden rounded bg-sky-100 px-1.5 py-0.5 text-xs font-medium text-sky-800 sm:inline">
             Follow-up · visit {data.visitNumber}
           </span>
         ) : (
           data.attempt > 1 && (
-            <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600 sm:inline">
+            <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 sm:inline">
               Attempt {data.attempt}
             </span>
           )
         )}
         <span
-          className={`hidden rounded px-1.5 py-0.5 text-[11px] font-medium md:inline ${data.recorded ? "bg-violet-100 text-violet-800" : "bg-slate-100 text-slate-600"}`}
+          className={`hidden rounded px-1.5 py-0.5 text-xs font-medium md:inline ${data.recorded ? "bg-violet-100 text-violet-800" : "bg-slate-100 text-slate-600"}`}
         >
           {data.recorded ? "Recorded for instructor" : "Private practice"}
         </span>
         {data.liveAssist && (
-          <span className="hidden rounded bg-violet-100 px-1.5 py-0.5 text-[11px] font-medium text-violet-800 md:inline">
+          <span className="hidden rounded bg-violet-100 px-1.5 py-0.5 text-xs font-medium text-violet-800 md:inline">
             Instructor can join
           </span>
         )}
@@ -855,7 +855,7 @@ export default function Visit({
         ))}
       </div>
 
-      <div className="encounter-layout grid min-h-0 flex-1 gap-4 p-2 max-lg:grid-rows-[minmax(0,1fr)] sm:p-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      <div className="encounter-layout grid min-h-0 flex-1 gap-4 p-2 max-lg:grid-rows-[minmax(0,1fr)] max-lg:grid-cols-[minmax(0,1fr)] sm:p-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         {/* LEFT: the call */}
         <div className={`encounter-call flex min-h-0 flex-col gap-3 ${mobileView === "chart" ? "max-lg:hidden" : ""}`}>
           <div className="relative h-[44%] min-h-[260px] shrink-0 overflow-hidden rounded-2xl bg-slate-900">
@@ -880,12 +880,14 @@ export default function Visit({
               className={`pointer-events-none absolute inset-0 rounded-lg transition-shadow ${patientTalking ? "shadow-[inset_0_0_0_3px_rgba(52,211,153,0.9)]" : ""}`}
             />
             <div className="absolute left-3 top-3 flex items-center gap-2">
-              <span className="flex items-center gap-1.5 rounded bg-black/55 px-2 py-1 text-[11px] font-medium text-white">
+              <span className="flex items-center gap-1.5 rounded bg-black/55 px-2 py-1 text-xs font-medium text-white">
                 <span className={`h-1.5 w-1.5 rounded-full ${callEnd ? "bg-slate-400" : "bg-rose-500"}`} /> {callEnd ? "CALL ENDED" : "LIVE"}
               </span>
-              {chart.rapport !== null && joined && (
+              {chart.showComfort && chart.rapport !== null && joined && (
                 <span
-                  className="flex items-center gap-2 rounded bg-black/55 px-2 py-1 text-[11px] text-white"
+                  tabIndex={0}
+                  aria-label={COMFORT_HELP}
+                  className="flex cursor-help items-center gap-2 rounded bg-black/55 px-2 py-1 text-xs text-white outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                   data-tooltip={COMFORT_HELP}
                 >
                   Comfort
@@ -895,14 +897,12 @@ export default function Visit({
                       style={{ width: `${chart.rapport}%` }}
                     />
                   </span>
-                  {lastDelta !== 0 && (
+                  {turnComfort && turnComfort.delta !== 0 && (
                     <span
-                      className={
-                        lastDelta > 0 ? "text-emerald-300" : "text-rose-300"
-                      }
+                      className={`font-semibold ${turnComfort.delta > 0 ? "text-emerald-300" : "text-rose-300"}`}
                     >
-                      {lastDelta > 0 ? "+" : ""}
-                      {lastDelta}
+                      {turnComfort.delta > 0 ? "+" : "\u2212"}
+                      {Math.abs(turnComfort.delta)}
                     </span>
                   )}
                 </span>
@@ -913,7 +913,7 @@ export default function Visit({
             {/* A self-view is useful only while the camera is enabled. */}
             {camOn && <div className="absolute right-3 top-3 h-20 w-28 overflow-hidden rounded-md border border-white/20 bg-slate-800">
               <video ref={selfRef} autoPlay muted playsInline className="h-full w-full -scale-x-100 object-cover" />
-              <span className="absolute bottom-0.5 left-1 text-[10px] text-white/80">You</span>
+              <span className="absolute bottom-0.5 left-1 text-xs text-white/80">You</span>
             </div>}
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-3 pt-10">
               {captionsOn && caption && (
@@ -1035,7 +1035,7 @@ export default function Visit({
                     {data.canRewind && m.id > 0 && !busy && (
                       <button
                         onClick={() => rewindTo(m.turn - 1)}
-                        className="self-center whitespace-nowrap text-[11px] text-slate-400 underline decoration-dotted hover:text-brand-600"
+                        className="self-center whitespace-nowrap text-xs text-slate-400 underline decoration-dotted hover:text-brand-600"
                       >
                         Try this again
                       </button>
@@ -1057,7 +1057,7 @@ export default function Visit({
                     key={m.id}
                     className={`whitespace-pre-wrap rounded-md border px-3 py-2 text-[13px] ${m.speaker === "coach" ? "border-amber-200 bg-amber-50 text-amber-900" : m.speaker === "instructor" ? "border-violet-200 bg-violet-50 text-violet-900" : "border-slate-200 bg-slate-50 font-mono text-[12px] text-slate-700"}`}
                   >
-                    <span className="mr-1.5 font-sans text-[10px] font-semibold uppercase tracking-wide opacity-70">
+                    <span className="mr-1.5 font-sans text-xs font-semibold uppercase tracking-wide opacity-70">
                       {m.speaker === "coach"
                         ? "Coach"
                         : m.speaker === "instructor"
@@ -1215,7 +1215,7 @@ export default function Visit({
               {(chart.goals?.length || chart.tasks.length) > 0 && (
                 <>
                   <h2 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    In this visit
+                    Session goals
                   </h2>
                   <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">
                     {(chart.goals?.length ? chart.goals : chart.tasks).map((t, i) => (

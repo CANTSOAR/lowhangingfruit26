@@ -100,7 +100,8 @@ export function sameIssue(a: string, b: string): boolean {
   const numbers = (t: string) => new Set(t.match(/\b\d+(?:\.\d+)?\b/g) || []);
   if (!equal(numbers(a), numbers(b))) return false;
   const negated = (t: string) => /\b(no|not|without|ruled out|excluded)\b/i.test(t);
-  if (negated(a) !== negated(b)) return false;
+  // Two statements that both pass as medication-safety concerns are both affirmative ("this is not standard" is not a negation).
+  if (negated(a) !== negated(b) && !(isMedSafetyConcern(a) && isMedSafetyConcern(b))) return false;
   const kinds = (t: string) => new Set([
     ["duplicate", /duplicat|double[- ]dos|two (?:different )?beta|dual beta/i],
     ["dose", /wrong dose|incorrect dose|dose (?:is |seems |appears )?(?:too|wrong|incorrect)|overdos/i],
