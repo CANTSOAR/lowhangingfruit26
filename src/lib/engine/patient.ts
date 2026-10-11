@@ -1,4 +1,5 @@
 import { profession } from "../professions";
+import { plainSpeech } from "../text-format";
 import type { CaseProfile, EncounterConfig, EncounterState, Fact } from "../types";
 import { endingDirective } from "./ending";
 import type { GateResult } from "./gatekeeper";
@@ -91,9 +92,9 @@ ${args.endCall ? endingDirective(args.endCall) + "\n\n" : ""}HARD RULES
 3. Do not coach the student or hint at what to ask.
 4. React honestly to how you are treated. If the student is kind, warm up. If they are cold, judgmental or use words you don't understand, show it.
 5. You cannot judge whether the student's medical statements are correct; respond as a patient would (accept, question, or misunderstand).
-6. Write only the words you say out loud. No stage directions, no asterisks, no descriptions of gestures or tone${deflect.length ? ", with one exception: in this reply you may add a single short cue in asterisks (for example *looks away*) to show your discomfort" : ""}.
+6. Write only the words you say out loud. You may surround a short important spoken phrase with **double asterisks** for on-screen emphasis; these markers are not spoken and must not coach the student. No stage directions or descriptions of gestures or tone${deflect.length ? ", with one exception: in this reply you may add a single short cue in single asterisks (for example *looks away*) to show your discomfort" : ""}.
 7. If asked to do something on camera for a remote exam, go along with it in words; the system reports findings separately, so do not describe clinical findings yourself.`;
 }
 
 /** Text for speech synthesis: stage directions removed. */
-export const spoken = (t: string) => t.replace(/\*[^*]*\*/g, " ").replace(/\s+/g, " ").trim();
+export const spoken = plainSpeech;

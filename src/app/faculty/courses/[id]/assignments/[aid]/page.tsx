@@ -1,3 +1,4 @@
+import GeneratedText from "@/components/learning/GeneratedText";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AppShell from "@/components/AppShell";
@@ -87,7 +88,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
           Feedback is held. Students can submit, but they cannot see scores or feedback until you press Release feedback.
         </div>
       )}
-      {a.instructions && <p className="mb-4 max-w-3xl whitespace-pre-line text-sm text-slate-700">{a.instructions}</p>}
+      {a.instructions && <p className="mb-4 max-w-3xl whitespace-pre-line text-sm text-slate-700"><GeneratedText text={a.instructions} /></p>}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Students submitted" value={`${studentsDone} of ${students}`} note={students === 0 ? "No students enrolled yet" : undefined} />

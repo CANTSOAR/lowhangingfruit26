@@ -1,5 +1,8 @@
 "use client";
 
+import GeneratedText from "@/components/learning/GeneratedText";
+import { PatientPortrait } from "@/components/learning/Patient";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -119,7 +122,10 @@ export default function CaseLibrary({ initial, professions }: { initial: Library
         <ul className="space-y-2">
           {shown.map((c) => (
             <li key={c.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <PatientPortrait src={c.portrait} name={c.patientName} className="h-14 w-14 shrink-0 rounded-full ring-2 ring-brand-50 sm:h-20 sm:w-20" initialsClassName="text-xl" />
+                <div className="min-w-0 flex-1">
+              <div className="flex flex-col items-start justify-between gap-3 md:flex-row">
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-1.5">
                     <StatusBadges c={c} />
@@ -131,14 +137,14 @@ export default function CaseLibrary({ initial, professions }: { initial: Library
                   <p className="mt-0.5 text-xs text-slate-500">
                     {[c.patient, c.professions.map(roleName).join(", "), c.specialty, `Difficulty ${c.difficulty} of 5`].filter(Boolean).join("  ·  ")}
                   </p>
-                  {c.summary && <p className="mt-1.5 line-clamp-2 max-w-4xl text-sm text-slate-600">{c.summary}</p>}
+                  {c.summary && <p className="mt-1.5 line-clamp-2 max-w-4xl text-sm text-slate-600"><GeneratedText text={c.summary} /></p>}
                   <p className="mt-1.5 text-xs text-slate-400">
                     {c.counts.facts} facts, {c.counts.actions} exams and orders, {c.counts.artifacts} documents
                     {c.counts.variants ? `, ${c.counts.variants} approved variant${c.counts.variants === 1 ? "" : "s"}` : ""} · edited {when(c.updatedAt)}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-                  <LinkButton href={`/faculty/cases/${c.id}`} variant="secondary" size="sm">
+                  <LinkButton href={`/faculty/cases/${c.id}`} size="sm">
                     Open
                   </LinkButton>
                   <Button
@@ -153,6 +159,9 @@ export default function CaseLibrary({ initial, professions }: { initial: Library
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-8 w-8 p-0"
+                    aria-label={`Duplicate ${c.patientName}`}
+                    data-tooltip="Duplicate patient"
                     disabled={busy === c.id}
                     onClick={() =>
                       act(c.id, async () => {
@@ -161,25 +170,30 @@ export default function CaseLibrary({ initial, professions }: { initial: Library
                       })
                     }
                   >
-                    Duplicate
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4" /></svg>
                   </Button>
                   {c.canEdit &&
                     (c.status === "archived" ? (
-                      <Button variant="ghost" size="sm" disabled={busy === c.id} onClick={() => setStatusOf(c.id, "restore")}>
-                        Restore
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label={`Restore ${c.patientName}`} data-tooltip="Restore patient" disabled={busy === c.id} onClick={() => setStatusOf(c.id, "restore")}>
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="M4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9M8 6l4-4 4 4M12 2v12" /><path d="M3 8h5M16 8h5" /></svg>
                       </Button>
                     ) : (
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="h-8 w-8 p-0 hover:bg-rose-50 hover:text-rose-700"
+                        aria-label={`Archive ${c.patientName}`}
+                        data-tooltip="Archive patient"
                         disabled={busy === c.id}
                         onClick={() => {
                           if (c.status !== "published" || window.confirm("This patient is published. Archiving removes it from students' lists. Archive it?")) setStatusOf(c.id, "archive");
                         }}
                       >
-                        Archive
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><rect x="3" y="3" width="18" height="5" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M9 12h6" /></svg>
                       </Button>
                     ))}
+                </div>
+              </div>
                 </div>
               </div>
             </li>

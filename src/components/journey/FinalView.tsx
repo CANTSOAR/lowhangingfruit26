@@ -1,5 +1,7 @@
 "use client";
 
+import GeneratedText from "@/components/learning/GeneratedText";
+
 import { useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Textarea, cx } from "@/components/ui";
 import { STATUS_LABEL, statusBoard, type Chain, type EntryStatus, type PlanItem, type RunView, type StateEntry } from "@/lib/journey/types";
@@ -165,7 +167,7 @@ function PlanItemRow({ view, item, onOpen, refresh }: { view: RunView; item: Pla
   return (
     <li className="px-4 py-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="min-w-0 flex-1 text-sm font-medium text-slate-900">{item.action}</p>
+        <p className="min-w-0 flex-1 text-sm font-medium text-slate-900"><GeneratedText text={item.action} /></p>
         {item.professions.length > 1 && <Badge tone="teal">Combines {item.professions.length} professions</Badge>}
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-600">
@@ -173,7 +175,7 @@ function PlanItemRow({ view, item, onOpen, refresh }: { view: RunView; item: Pla
         {item.ownerRoles.map((o) => <Badge key={o} tone="blue">{o}</Badge>)}
         {item.timeframe && <span className="text-slate-500">· {item.timeframe}</span>}
       </div>
-      <p className="mt-1 text-[13px] text-slate-600">{item.rationale}</p>
+      <p className="mt-1 text-[13px] text-slate-600"><GeneratedText text={item.rationale} /></p>
       <div className="mt-1.5 flex flex-wrap items-center gap-1">
         <span className="text-[11px] text-slate-500">Rests on:</span>
         {item.restsOn.map((id) => {
@@ -190,7 +192,7 @@ function PlanItemRow({ view, item, onOpen, refresh }: { view: RunView; item: Pla
       {item.revisions?.map((r, i) => (
         <p key={i} className="mt-1.5 rounded bg-emerald-50 px-2 py-1 text-[12px] text-emerald-900">Changed in the huddle by {r.by}. Was: &ldquo;{r.from}&rdquo;</p>
       ))}
-      {reply && !editing && <p className="mt-1.5 rounded bg-slate-50 px-2 py-1 text-[12px] text-slate-700"><span className="font-semibold">{reply.fromName}:</span> {reply.text}</p>}
+      {reply && !editing && <p className="mt-1.5 rounded bg-slate-50 px-2 py-1 text-[12px] text-slate-700"><span className="font-semibold">{reply.fromName}:</span> <GeneratedText text={reply.text} /></p>}
       {view.viewerIsOwner &&
         (editing ? (
           <div className="mt-2 space-y-2">
@@ -247,7 +249,7 @@ export default function FinalView({ view, onOpen, refresh }: { view: RunView; on
         <div className="grid gap-4 p-4 lg:grid-cols-[1fr_auto]">
           <div>
             <h2 className="text-base font-semibold text-slate-900">{view.patient.name}, {view.patient.age} · one patient, {view.stages.length} encounters, one shared state</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{syn?.patientSummary || "The integrated summary and care plan are written after the team huddle. Everything below is live and grows after each encounter."}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-slate-700"><GeneratedText text={syn?.patientSummary || "The integrated summary and care plan are written after the team huddle. Everything below is live and grows after each encounter."} /></p>
             {syn && syn.summaryCites.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 <span className="text-[11px] text-slate-500">Rests on:</span>
@@ -307,8 +309,8 @@ export default function FinalView({ view, onOpen, refresh }: { view: RunView; on
               <div key={p.id} className="rounded-lg border border-slate-200">
                 <div className="border-b border-slate-100 bg-slate-50 px-4 py-2.5">
                   <h3 className="text-sm font-semibold text-slate-900">{p.title}</h3>
-                  {p.patientGoal && <p className="mt-0.5 text-[13px] text-slate-700"><span className="font-medium">What the patient wants:</span> {p.patientGoal}</p>}
-                  <p className="mt-0.5 text-[13px] text-slate-600">{p.summary}</p>
+                  {p.patientGoal && <p className="mt-0.5 text-[13px] text-slate-700"><span className="font-medium">What the patient wants:</span> <GeneratedText text={p.patientGoal} /></p>}
+                  <p className="mt-0.5 text-[13px] text-slate-600"><GeneratedText text={p.summary} /></p>
                 </div>
                 <ul className="divide-y divide-slate-100">{p.items.map((it) => <PlanItemRow key={it.id} view={view} item={it} onOpen={onOpen} refresh={refresh} />)}</ul>
               </div>

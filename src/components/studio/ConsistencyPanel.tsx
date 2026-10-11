@@ -1,5 +1,7 @@
 "use client";
 
+import GeneratedText from "@/components/learning/GeneratedText";
+
 import { useState } from "react";
 import { Badge, Button, cx } from "@/components/ui";
 import type { CaseProfile } from "@/lib/types";
@@ -28,12 +30,12 @@ function IssueCard({ issue, p, onApply, onStatus, go }: { issue: Issue; p: CaseP
         <span className="text-xs text-slate-500">{issue.where}</span>
       </div>
       <p className="mt-1.5 text-sm font-medium text-slate-900">{issue.title}</p>
-      <p className="mt-0.5 text-sm leading-relaxed text-slate-700">{issue.why}</p>
+      <p className="mt-0.5 text-sm leading-relaxed text-slate-700"><GeneratedText text={issue.why} /></p>
       {issue.fix && !closed && (
         <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-2">
           <p className="text-xs text-slate-700">
             <span className="font-semibold">Proposed fix: </span>
-            {issue.fix.summary}{" "}
+            <GeneratedText text={issue.fix.summary} />{" "}
             <button type="button" className="text-brand-700 underline" onClick={() => setShow(!show)}>
               {show ? "Hide" : "Show"} the {issue.fix.ops.length} edit{issue.fix.ops.length === 1 ? "" : "s"}
             </button>
@@ -153,7 +155,7 @@ export default function ConsistencyPanel({
               The clinical review did not complete ({result.modelError}). Only the structure checks are shown. Run the check again.
             </Notice>
           )}
-          {result.summary && <p className="mb-3 text-sm text-slate-700">{result.summary}</p>}
+          {result.summary && <p className="mb-3 text-sm text-slate-700"><GeneratedText text={result.summary} /></p>}
           {!open.length && !result.modelError && <Notice tone="green">No open issues.</Notice>}
           <ul className="space-y-2">
             {open.map((i) => (

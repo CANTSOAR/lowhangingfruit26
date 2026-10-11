@@ -6,10 +6,12 @@ export function PatientPortrait({
   src,
   name,
   className = "",
+  initialsClassName = "text-3xl",
 }: {
   src?: string | null;
   name: string;
   className?: string;
+  initialsClassName?: string;
 }) {
   const [failed, setFailed] = useState(false);
   return (
@@ -25,7 +27,7 @@ export function PatientPortrait({
         />
       ) : (
         <div
-          className="grid h-full min-h-20 place-items-center bg-gradient-to-br from-blue-100 to-indigo-100 text-3xl font-semibold text-blue-800"
+          className={`grid h-full place-items-center bg-gradient-to-br from-blue-100 to-indigo-100 font-semibold text-blue-800 ${initialsClassName}`}
           aria-label={`Patient ${name}`}
         >
           {name
@@ -37,6 +39,16 @@ export function PatientPortrait({
       )}
     </div>
   );
+}
+/** Compact semicircular score display. Status text is handled by the caller. */
+export function ScoreGauge({ value }: { value: number }) {
+  const score = Math.max(0, Math.min(100, Math.round(value)));
+  const color = score < 50 ? "#e11d48" : score < 75 ? "#b77900" : "#059669";
+  return <svg width="76" height="46" viewBox="0 0 80 48" role="img" aria-label={`Visit score: ${score}%`} data-tooltip={`Released visit score: ${score}%`}>
+    <path d="M8 40a32 32 0 0 1 64 0" fill="none" stroke="#e2e8f0" strokeWidth="7" strokeLinecap="round" />
+    {score > 0 && <path d="M8 40a32 32 0 0 1 64 0" pathLength="100" fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${score} 100`} />}
+    <text x="40" y="40" textAnchor="middle" fill="#0f172a" fontSize="15" fontWeight="600">{score}%</text>
+  </svg>;
 }
 export function LevelPips({ level }: { level: number }) {
   return (

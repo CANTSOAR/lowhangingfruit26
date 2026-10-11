@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import GeneratedText from "@/components/learning/GeneratedText";
+import { plainSpeech, stripStageCues } from "@/lib/text-format";
 import IconToggle from "@/components/learning/IconToggle";
 import { briefParts } from "@/lib/feedback-text";
 import type { PatientEnded, ComfortReason } from "@/lib/types";
@@ -102,11 +104,7 @@ const initials = (n: string) =>
     .slice(0, 2)
     .join("")
     .toUpperCase();
-const stripCues = (t: string) =>
-  t
-    .replace(/\*[^*]*\*/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+const stripCues = plainSpeech;
 
 function Icon({ d, className = "h-5 w-5" }: { d: string; className?: string }) {
   return (
@@ -360,7 +358,7 @@ export default function Visit({
     });
   }
   function speak(text: string) {
-    if (!speakerOn || !text.replace(/\*[^*]*\*/g, "").trim()) return;
+    if (!speakerOn || !plainSpeech(text)) return;
     const gen = voice.current.gen;
     voice.current.queue.push(
       fetch("/api/tts", {
@@ -1049,15 +1047,7 @@ export default function Visit({
                 ) : m.speaker === "patient" ? (
                   <div key={m.id} className="flex">
                     <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-slate-100 px-3.5 py-2 text-sm text-slate-900">
-                      {m.text.split(/(\*[^*]+\*)/).map((part, i) =>
-                        part.startsWith("*") ? (
-                          <em key={i} className="text-slate-500">
-                            {part.slice(1, -1)}{" "}
-                          </em>
-                        ) : (
-                          <span key={i}>{part}</span>
-                        ),
-                      )}
+                      <GeneratedText text={m.text} cues />
                     </div>
                   </div>
                 ) : m.speaker === "system" && m.text.startsWith("Requested:") ? (
@@ -1076,14 +1066,14 @@ export default function Visit({
                             ? "Colleague"
                             : "Chart"}
                     </span>
-                    {m.text}
+                    <GeneratedText text={m.text} />
                   </div>
                 ),
               )}
               {pending !== null && (
                 <div className="flex">
                   <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-slate-100 px-3.5 py-2 text-sm text-slate-900">
-                    {stripCues(pending) || (
+                    {stripCues(pending) ? <GeneratedText text={stripStageCues(pending)} /> : (
                       <span className="text-slate-400">
                         {firstName} is thinking…
                       </span>

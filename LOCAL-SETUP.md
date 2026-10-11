@@ -7,7 +7,7 @@ The parent repository locally excludes this folder through `.git/info/exclude`.
 ## Open and run
 
 Open <http://127.0.0.1:3100>. The production build is running locally on port 3100.
-The final integrated server uses `.next-publish-main`. Port 3114 is a separate
+The current UI-refinement preview uses `.next-ui-comments`. Port 3114 is a separate
 preview with a copied database and a synthetic patient-ended-call fixture; use 3100
 for your saved work. The server binds to loopback. It is a local instance with its own database, separate
 from the team's deployed prototype.
@@ -16,7 +16,7 @@ To run it again:
 
 ```sh
 cd /path/to/lowhangingfruit26
-NEXT_DIST_DIR=.next-publish-main npm run start -- --hostname 127.0.0.1 --port 3100
+NEXT_DIST_DIR=.next-ui-comments npm run start -- --hostname 127.0.0.1 --port 3100
 ```
 
 For development, stop the running server first, then use:
@@ -26,7 +26,7 @@ cd /path/to/lowhangingfruit26
 npm run dev -- --hostname 127.0.0.1 --port 3100
 ```
 
-After code changes, `NEXT_DIST_DIR=.next-publish-main npm run build` rebuilds the
+After code changes, `NEXT_DIST_DIR=.next-ui-comments npm run build` rebuilds the
 production output used above. Development uses `.next` separately.
 Dependencies were installed with `npm ci` from the existing lockfile, using
 Node 26.0.0 and npm 11.12.1.

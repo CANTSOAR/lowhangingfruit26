@@ -1,5 +1,7 @@
 "use client";
 
+import GeneratedText from "@/components/learning/GeneratedText";
+
 import { useState } from "react";
 import { Badge, Button, Select, Textarea, cx } from "@/components/ui";
 import type { RunView } from "@/lib/journey/types";
@@ -73,7 +75,7 @@ export default function ConsultPanel({ view, refresh, compact }: { view: RunView
                 {m.meta?.act && ACT_LABEL[m.meta.act] && <Badge tone="slate">{ACT_LABEL[m.meta.act]}</Badge>}
                 {m.meta?.loop === "closed" && <Badge tone="green">Loop closed</Badge>}
               </div>
-              <div className="whitespace-pre-wrap">{m.text}</div>
+              <div className="whitespace-pre-wrap">{m.fromIsAi ? <GeneratedText text={m.text} /> : m.text}</div>
             </li>
           ))}
         </ol>

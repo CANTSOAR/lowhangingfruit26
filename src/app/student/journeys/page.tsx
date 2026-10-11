@@ -77,7 +77,7 @@ export default async function StudentJourneys() {
               <p className="mt-5 text-sm leading-relaxed text-slate-600">
                 {faculty
                   ? spec.summary
-                  : "Choose your role in the care team. Practise your visit, then see how each handoff shapes the next."}
+                  : "Choose your role in the care team. Practice your visit, then see how each handoff shapes the next."}
               </p>
               <ol
                 className="my-5 space-y-2"

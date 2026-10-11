@@ -27,11 +27,13 @@ export default function HoverHelp() {
       }
       tip!.textContent = content;
       tip!.style.width = `${Math.min(300,window.innerWidth-32)}px`;
-      tip!.style.maxHeight = `${Math.max(24,element.getBoundingClientRect().top-16)}px`;
-      tip!.showPopover();
       const rect = element.getBoundingClientRect();
+      const above = rect.top - 16;
+      const below = window.innerHeight - rect.bottom - 16;
+      tip!.style.maxHeight = `${Math.max(24, Math.max(above, below))}px`;
+      tip!.showPopover();
       tip!.style.left = `${Math.max(16,Math.min(rect.left+rect.width/2-tip!.offsetWidth/2,window.innerWidth-tip!.offsetWidth-16))}px`;
-      tip!.style.top = `${Math.max(8,rect.top-tip!.offsetHeight-8)}px`;
+      tip!.style.top = `${above >= tip!.offsetHeight || above >= below ? Math.max(8, rect.top-tip!.offsetHeight-8) : rect.bottom+8}px`;
     }
     function enter(event: Event) {
       const target = event.target;

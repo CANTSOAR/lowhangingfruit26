@@ -77,6 +77,7 @@ export async function gatekeep(args: {
   try {
     return await chatJSON<GateResult>({
       model: MODELS.fast,
+      emphasis: false,
       system: SYSTEM,
       schema: SCHEMA,
       maxTokens: 700,
@@ -199,6 +200,7 @@ export async function matchActions(request: string, actions: ClinicalAction[]): 
   const list = actions.map((a) => `${a.id} | ${a.kind} | ${a.name}${a.aliases?.length ? " (" + a.aliases.join(", ") + ")" : ""}`).join("\n");
   const res = await chatJSON<{ matched: string[]; unmatched: string[] }>({
     model: MODELS.fast,
+    emphasis: false,
     temperature: 0,
     maxTokens: 400,
     schema: ORDER_SCHEMA,
@@ -260,6 +262,7 @@ export async function auditReply(args: { reply: string; known: Fact[]; reveal: F
   try {
     const res = await chatJSON<{ unsupported: string[]; not_conveyed: string[]; also_conveyed: string[] }>({
       model: MODELS.fast,
+      emphasis: false,
       temperature: 0,
       maxTokens: 500,
       schema: AUDIT_SCHEMA,

@@ -1,5 +1,6 @@
 import { all, get, newId, parse, run } from "../db";
 import { chatStream, MODELS, type Turn } from "../llm";
+import { stripStageCues } from "../text-format";
 import { profession } from "../professions";
 import { FACT_CATEGORIES } from "../types";
 import type { Artifact, CaseProfile, ComfortReason, EncounterConfig, EncounterState, Fact, Knobs, PatientEnded, Perturbation } from "../types";
@@ -419,8 +420,7 @@ export async function* runTurn(encId: string, text: string): AsyncGenerator<Turn
     return void (yield { type: "error", message: "The patient connection dropped. Please send that again. (" + (e as Error).message + ")" });
   }
   // Body-language cues are kept only when the patient is deflecting, and then only the first one.
-  let cues = 0;
-  reply = reply.replace(/\*[^*\n]{1,80}\*/g, (m) => (d.deflect.length && cues++ === 0 ? m : ""));
+  reply = stripStageCues(reply, d.deflect.length > 0);
   reply = reply.replace(/[ \t]+\n/g, "\n").replace(/\n{2,}/g, "\n").replace(/ {2,}/g, " ").trim() || "...";
   // Grounding audit: anything clinical the patient said beyond the approved facts is flagged, never filed.
   const stillLocked = locked.filter((f) => !d.reveal.includes(f));

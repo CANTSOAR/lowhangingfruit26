@@ -1,3 +1,4 @@
+import GeneratedText from "@/components/learning/GeneratedText";
 import { notFound } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import JourneyBuilder from "@/components/journey/JourneyBuilder";
@@ -70,7 +71,7 @@ export default async function FacultyJourney({ params }: { params: Promise<{ id:
                           );
                         })}
                       </div>
-                      <p className="mt-2 text-sm text-slate-700">{ev.summary}</p>
+                      <p className="mt-2 text-sm text-slate-700"><GeneratedText text={ev.summary} /></p>
                       <details className="mt-2">
                         <summary className="cursor-pointer text-xs font-medium text-brand-700">Behaviors not observed, with evidence location and feedback</summary>
                         <ul className="mt-2 space-y-1.5 text-[13px]">
@@ -78,7 +79,7 @@ export default async function FacultyJourney({ params }: { params: Promise<{ id:
                             <li key={b.key} className="rounded border border-slate-200 px-2.5 py-1.5">
                               <span className="font-medium text-slate-800">{BEHAVIOURS.find((x) => x.key === b.key)?.label}</span>
                               {b.location && <span className="text-slate-500"> · {b.location.replace("->", "→")}</span>}
-                              <div className="text-slate-700">{b.feedback}</div>
+                              <div className="text-slate-700"><GeneratedText text={b.feedback} /></div>
                             </li>
                           ))}
                         </ul>

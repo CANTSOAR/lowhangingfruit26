@@ -1,5 +1,7 @@
 "use client";
 
+import GeneratedText from "@/components/learning/GeneratedText";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge, cx } from "@/components/ui";
 import { BEHAVIOURS, KIND_LABEL, SBAR_FIELDS, SOURCE_LABEL, STATUS_LABEL, type EntryStatus, type Handoff, type RunView, type StateEntry, type TraceEvaluation } from "@/lib/journey/types";
@@ -171,7 +173,7 @@ export function EntryRow({ entry, onOpen, showWho = true, dense }: { entry: Stat
     <button type="button" onClick={() => onOpen?.(entry.id)} className={cx("flex w-full items-start gap-2 rounded-md px-2 text-left hover:bg-slate-50", dense ? "py-1" : "py-1.5")}>
       <span className="mt-1.5 h-2 w-2 shrink-0 rounded-sm" style={{ background: STATUS_COLOR[entry.effectiveStatus] }} data-tooltip={STATUS_LABEL[entry.effectiveStatus]} />
       <span className="min-w-0 flex-1">
-        <span className={cx("text-sm text-slate-800", entry.text.length > 260 && "line-clamp-3")} data-tooltip={entry.text.length > 260 ? "Select to read the whole entry" : undefined}>{entry.text}</span>
+        <span className={cx("text-sm text-slate-800", entry.text.length > 260 && "line-clamp-3")} data-tooltip={entry.text.length > 260 ? "Select to read the whole entry" : undefined}><GeneratedText text={entry.text} /></span>
         <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-slate-500">
           <span>{KIND_LABEL[entry.kind] || entry.kind}</span>
           {STATUS_LABEL[entry.effectiveStatus] !== (KIND_LABEL[entry.kind] || entry.kind) && <span>{STATUS_LABEL[entry.effectiveStatus]}</span>}
@@ -223,7 +225,7 @@ export function ProvenancePanel({ view, entryId, onOpen, onClose }: { view: RunV
           <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Where this came from</h2>
           <button onClick={onClose} className="rounded px-2 py-0.5 text-sm text-slate-500 hover:bg-slate-100">Close</button>
         </div>
-        <p className={cx("mt-2 font-medium text-slate-900", e.text.length > 260 ? "text-sm leading-relaxed" : "text-base")}>{e.text}</p>
+        <p className={cx("mt-2 font-medium text-slate-900", e.text.length > 260 ? "text-sm leading-relaxed" : "text-base")}><GeneratedText text={e.text} /></p>
         <dl className="mt-4 divide-y divide-slate-100 text-sm">
           {rows.map(([k, v]) => (
             <div key={k} className="grid grid-cols-[8.5rem_1fr] gap-2 py-1.5">
@@ -256,7 +258,7 @@ export function ProvenancePanel({ view, entryId, onOpen, onClose }: { view: RunV
                 <li key={`o${l.id}`}>
                   <button onClick={() => onOpen(t.id)} className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-left hover:bg-slate-50">
                     <span className="text-[11px] font-semibold text-brand-700">{REL_OUT[l.relation]}</span>
-                    <span className="block text-sm text-slate-800">{t.text}</span>
+                    <span className="block text-sm text-slate-800"><GeneratedText text={t.text} /></span>
                     <span className="text-[11px] text-slate-500">{t.contributorName} · {stageLabel(view, t)}</span>
                     {l.evidence?.quote && <span className="mt-0.5 block text-[11px] italic text-slate-500">&ldquo;{l.evidence.quote.slice(0, 220)}&rdquo;</span>}
                   </button>
@@ -269,7 +271,7 @@ export function ProvenancePanel({ view, entryId, onOpen, onClose }: { view: RunV
                 <li key={`i${l.id}`}>
                   <button onClick={() => onOpen(f.id)} className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-left hover:bg-slate-50">
                     <span className="text-[11px] font-semibold text-slate-600">{REL_IN[l.relation]}</span>
-                    <span className="block text-sm text-slate-800">{f.text}</span>
+                    <span className="block text-sm text-slate-800"><GeneratedText text={f.text} /></span>
                     <span className="text-[11px] text-slate-500">{f.contributorName} · {stageLabel(view, f)} · {f.simTime}</span>
                   </button>
                 </li>
@@ -297,7 +299,7 @@ export function SbarCard({ handoff, title }: { handoff: Handoff; title?: string 
         {SBAR_FIELDS.map((f) => (
           <div key={f.key} className="grid gap-1 px-4 py-2.5 sm:grid-cols-[8rem_1fr]">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{f.label}</dt>
-            <dd className="whitespace-pre-wrap text-sm text-slate-800">{handoff.sbar[f.key] || <span className="text-slate-400">Left blank</span>}</dd>
+            <dd className="whitespace-pre-wrap text-sm text-slate-800">{handoff.sbar[f.key] ? <GeneratedText text={handoff.sbar[f.key]} /> : <span className="text-slate-400">Left blank</span>}</dd>
           </div>
         ))}
       </dl>
@@ -312,7 +314,7 @@ export function TraceTable({ evaluation, compact }: { evaluation: TraceEvaluatio
   const domains = [...new Set(BEHAVIOURS.map((b) => b.domain))];
   return (
     <div className="space-y-4">
-      {evaluation.summary && !compact && <p className="text-sm text-slate-700">{evaluation.summary}</p>}
+      {evaluation.summary && !compact && <p className="text-sm text-slate-700"><GeneratedText text={evaluation.summary} /></p>}
       {domains.map((d) => {
         const items = BEHAVIOURS.filter((b) => b.domain === d).map((b) => ({ def: b, r: evaluation.behaviours.find((x) => x.key === b.key) })).filter((x) => x.r);
         if (!items.length) return null;
@@ -337,7 +339,7 @@ export function TraceTable({ evaluation, compact }: { evaluation: TraceEvaluatio
                   <div className="min-w-0 text-sm">
                     {r!.location && <div className="text-xs text-slate-500">Evidence: <span className="font-medium text-slate-700">{r!.location.replace("->", "→")}</span></div>}
                     {r!.quote && <blockquote className="mt-1 border-l-2 border-slate-300 pl-2 text-[13px] italic text-slate-600">&ldquo;{r!.quote}&rdquo;</blockquote>}
-                    <p className="mt-1 text-slate-800">{r!.feedback}</p>
+                    <p className="mt-1 text-slate-800"><GeneratedText text={r!.feedback} /></p>
                   </div>
                 </li>
               ))}
@@ -378,7 +380,7 @@ export function Transcript({ lines, clinician, patient }: { lines: { turn: numbe
         ) : (
           <li key={i} className={cx("max-w-[92%] rounded-lg px-3 py-2 text-sm", m.speaker === "clinician" ? "bg-brand-50 text-slate-800" : "ml-auto bg-slate-100 text-slate-800")}>
             <div className="mb-0.5 text-[11px] font-semibold text-slate-500">{m.speaker === "clinician" ? clinician : patient} · turn {m.turn}</div>
-            <div className="whitespace-pre-wrap">{m.text}</div>
+            <div className="whitespace-pre-wrap"><GeneratedText text={m.text} cues /></div>
           </li>
         ),
       )}

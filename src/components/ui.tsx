@@ -1,4 +1,5 @@
 import Link from "next/link";
+import GeneratedText from "./learning/GeneratedText";
 import type { ComponentProps, ReactNode } from "react";
 
 const cx = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
@@ -26,7 +27,7 @@ export function CardHeader({ title, subtitle, action }: { title: ReactNode; subt
     <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
       <div>
         <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+        {subtitle && <p className="mt-0.5 text-xs text-slate-500">{typeof subtitle === "string" ? <GeneratedText text={subtitle} /> : subtitle}</p>}
       </div>
       {action}
     </div>
@@ -62,7 +63,7 @@ export function PageHeader({ title, subtitle, action }: { title: ReactNode; subt
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-600">{subtitle}</p>}
+        {subtitle && <p className="mt-1 text-sm text-slate-600">{typeof subtitle === "string" ? <GeneratedText text={subtitle} /> : subtitle}</p>}
       </div>
       {action}
     </div>

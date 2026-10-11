@@ -1,4 +1,6 @@
 import FocusArea from "@/components/learning/FocusArea";
+import InfoHelp from "@/components/learning/InfoHelp";
+import { PatientPortrait } from "@/components/learning/Patient";
 import Link from "next/link";
 import { Term } from "@/components/learning/Preferences";
 import AppShell from "@/components/AppShell";
@@ -17,7 +19,7 @@ import {
 } from "@/components/ui";
 import { skillProfile } from "@/lib/adaptive";
 import { requireUser } from "@/lib/auth";
-import { all } from "@/lib/db";
+import { all, parse } from "@/lib/db";
 import {
   feedbackUrl,
   heldAssignmentIds,
@@ -211,6 +213,9 @@ export default async function ProgressPage({
   );
   const meta = new Map(mine.map((m) => [m.id, m]));
   const caseIds = [...new Set(mine.map((m) => m.case_id))];
+  const patients = new Map((caseIds.length ? all<{ id: string; profile: string }>(
+    `SELECT id, profile FROM cases WHERE id IN (${caseIds.map(() => "?").join(",")})`, ...caseIds,
+  ) : []).map(c => [c.id, parse<{ patient?: { name?: string; portrait?: string } }>(c.profile, {}).patient]));
   const perCase = caseIds
     .map((caseId) => {
       // Visits whose feedback an instructor is still holding are left out until it is released.
@@ -225,6 +230,8 @@ export default async function ProgressPage({
       // A care-journey visit is labelled with the role the student played, not the case's own profession.
       return {
         caseId,
+        portrait: patients.get(caseId)?.portrait,
+        patientName: patients.get(caseId)?.name || base.split(" · ")[0],
         title: played ? `${base.split(" · ")[0]} · ${played}` : base,
         attempts,
       };
@@ -278,7 +285,7 @@ export default async function ProgressPage({
             : "Finish a practice visit to start building your skill profile."}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <LinkButton href="/student">Practise your next step →</LinkButton>
+          <LinkButton href="/student">Practice your next step →</LinkButton>
           <Term term="rating" />
         </div>
       </Card>
@@ -290,6 +297,7 @@ export default async function ProgressPage({
           />
           <div className="p-4">
             <BarList
+              rubric
               unit="Released rubric scores"
               items={(() => {
                 const latest = new Map<
@@ -314,6 +322,7 @@ export default async function ProgressPage({
                   label: d.name,
                   value: (d.score! / d.max) * 100,
                   display: `${d.score}/${d.max}`,
+                  steps: d.max === 4 ? 4 : 1,
                   detail: "Latest released rubric result",
                 }));
               })()}
@@ -348,23 +357,6 @@ export default async function ProgressPage({
         />
       </div>
 
-      <details className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-        <summary className="cursor-pointer text-sm font-medium text-slate-600">
-          How skill ratings and difficulty work
-        </summary>
-        <div className="px-4 py-3 text-sm text-slate-700">
-          <span className="font-semibold text-slate-900">
-            How the adaptive level is chosen.{" "}
-          </span>
-          After every scored visit, your rating in each rubric domain moves up
-          if you scored better than expected for that visit&apos;s level and
-          down if you scored worse, with bigger moves while you have few visits.
-          Your next adaptive session is set at the level where your expected
-          score is closest to 70%, and the patient&apos;s behavior is tuned to
-          exercise your weakest domain.
-        </div>
-      </details>
-
       {profile.domains.length === 0 ? (
         <div className="mt-5">
           <Empty>
@@ -387,16 +379,17 @@ export default async function ProgressPage({
         </div>
       ) : (
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <Card>
+          <Card className="min-w-0">
             <CardHeader
               title="Skill rating by rubric domain"
               subtitle="Each dot is your current rating. The vertical lines mark the rating each difficulty level plays at; a dot to the right of a line means you are expected to do well at that level."
+              action={<InfoHelp label="How skill ratings and difficulty work" text="After every scored visit, your rating in each rubric domain moves up if you scored better than expected for that visit's level and down if you scored worse, with bigger moves while you have few visits. Your next adaptive session uses the level where your expected score is closest to 70%, and the patient's behavior is tuned to exercise your weakest domain. Ratings are not percentages of mastery. Each dot shows your rating; the level lines show the difficulty ratings." />}
             />
             <div className="p-4">
               <SkillDots items={dots} ticks={ticks} lo={LO} hi={HI} />
             </div>
           </Card>
-          <Card>
+          <Card className="min-w-0">
             <CardHeader
               title="Rating over time"
               subtitle="Your rating after each scored visit, against the same level lines."
@@ -443,7 +436,9 @@ export default async function ProgressPage({
             return (
               <Card key={c.caseId}>
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-4 py-3">
-                  <div className="min-w-0">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <PatientPortrait src={c.portrait} name={c.patientName} className="h-12 w-12 shrink-0 rounded-full ring-2 ring-brand-50" initialsClassName="text-lg" />
+                    <div className="min-w-0">
                     <h3 className="text-sm font-semibold text-slate-900">
                       {c.title}
                     </h3>
@@ -454,6 +449,7 @@ export default async function ProgressPage({
                       {change !== null &&
                         ` · ${change > 0 ? "up" : change < 0 ? "down" : "no change"}${change ? ` ${Math.abs(change)} percentage points` : ""} from first to latest`}
                     </p>
+                    </div>
                   </div>
                   {scores.length > 1 && (
                     <div className="flex items-center gap-2">

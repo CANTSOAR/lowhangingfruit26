@@ -86,7 +86,7 @@ export function CaseCard({
         {c.best !== null && <ScoreRing value={c.best} />}
       </div> : <div className="my-4 flex min-h-20 items-center gap-3 rounded-xl bg-slate-50 p-3">
         <svg aria-hidden="true" className="h-6 w-6 shrink-0 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M9 3h6v3H9zM9 4H6v17h12V4h-3M9 11h6M9 15h6" /></svg>
-        <div><p className="text-xs font-medium text-slate-700">{c.activeId ? "Your visit is in progress" : "A conversation, then your care plan"}</p><p className="mt-1 text-xs leading-relaxed text-slate-500">{c.activeId ? "Pick up where you left off and use the chart to build your next steps." : "Explore the patient's concerns, review the chart and practise your next steps."}</p></div>
+        <div><p className="text-xs font-medium text-slate-700">{c.activeId ? "Your visit is in progress" : "A conversation, then your care plan"}</p><p className="mt-1 text-xs leading-relaxed text-slate-500">{c.activeId ? "Pick up where you left off and use the chart to build your next steps." : "Explore the patient's concerns, review the chart and practice your next steps."}</p></div>
       </div>}
       <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-2">
         {c.activeId ? (
@@ -102,7 +102,7 @@ export function CaseCard({
             label={c.attempts ? "Retry patient →" : "Meet patient →"}
           />
         )}
-        <div className="ml-auto flex items-center gap-2"><DifficultyDemeanor level={level} patient={c.patientFirstName} /><DifficultySignal level={level} onChange={setLevel} locked={!!c.activeId} patient={c.patientFirstName} /></div>
+        <div className="ml-auto flex items-center rounded-xl border border-brand-100 bg-brand-50 p-0.5"><DifficultyDemeanor level={level} patient={c.patientFirstName} integrated /><DifficultySignal level={level} onChange={setLevel} locked={!!c.activeId} patient={c.patientFirstName} integrated /></div>
       </div>
       {c.attempts > 0 ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
@@ -122,7 +122,7 @@ export function CaseCard({
             size="sm"
           />
         </div>
-      ) : <p className="mt-4 flex min-h-9 items-center border-t border-slate-100 pt-3 text-xs text-slate-500">Private practice · Your notes and feedback are just for you.</p>}
+      ) : null}
     </Card>
   );
 }
@@ -167,13 +167,13 @@ export default function PracticeLibrary({
   return (
     <div>
       <div
-        className="mb-4 flex flex-wrap gap-2"
+        className="mb-4 flex flex-wrap items-center justify-between gap-3"
         aria-label="Visit history filters"
       >
-        {[
+        <div className="flex flex-wrap gap-2">{[
           ["", "All patients"],
           ["new", "New to you"],
-          ["done", "Practised"],
+          ["done", "Practiced"],
         ].map(([value, label]) => (
           <button
             key={value}
@@ -183,9 +183,8 @@ export default function PracticeLibrary({
           >
             {label}
           </button>
-        ))}
-      </div>
-      <div className="mb-4 flex justify-start"><Button variant="secondary" onClick={() => setFiltersOpen(true)} aria-haspopup="dialog" aria-expanded={filtersOpen}>
+        ))}</div>
+      <Button variant="secondary" className="ml-auto" onClick={() => setFiltersOpen(true)} aria-haspopup="dialog" aria-expanded={filtersOpen}>
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>
         Filters{[prof,specialty,level,status].filter(Boolean).length > 0 && <span className="rounded-full bg-brand-50 px-1.5 text-xs text-brand-700">{[prof,specialty,level,status].filter(Boolean).length}</span>}
       </Button></div>

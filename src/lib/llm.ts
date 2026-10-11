@@ -5,6 +5,7 @@ import {
   type Message,
   type Tool,
 } from "@aws-sdk/client-bedrock-runtime";
+import { PROSE_EMPHASIS } from "./text-format";
 
 // Credentials come from the default chain: env vars locally, the instance role when deployed.
 const g = globalThis as unknown as { __bedrock?: BedrockRuntimeClient };
@@ -35,13 +36,15 @@ interface CallOpts {
   messages: Turn[];
   maxTokens?: number;
   temperature?: number;
+  /** Disable for internal classification, audits and exact-match machine data. */
+  emphasis?: boolean;
 }
 
 /** Appended to every system prompt so any text the model writes for the screen uses US spelling (prompts are partly British). */
 const US_SPELLING = "\n\nWrite in US English spelling (for example: behavior, summarize, recognize, judgment, counseling, color, anemia). Keep names, quoted words and identifiers exactly as given.";
 
-function withUs(system: string): string {
-  return system + US_SPELLING;
+function withUs(system: string, emphasis = true): string {
+  return system + US_SPELLING + (emphasis ? "\n\n" + PROSE_EMPHASIS : "");
 }
 
 function toMessages(turns: Turn[]): Message[] {
@@ -79,7 +82,7 @@ export async function chatText(o: CallOpts): Promise<string> {
     client().send(
       new ConverseCommand({
         modelId: o.model || MODELS.chat,
-        system: [{ text: withUs(o.system) }],
+        system: [{ text: withUs(o.system, o.emphasis) }],
         messages: toMessages(o.messages),
         inferenceConfig: { maxTokens: o.maxTokens ?? 1024, temperature: o.temperature },
       }),
@@ -93,7 +96,7 @@ export async function* chatStream(o: CallOpts): AsyncGenerator<string> {
     client().send(
       new ConverseStreamCommand({
         modelId: o.model || MODELS.chat,
-        system: [{ text: withUs(o.system) }],
+        system: [{ text: withUs(o.system, o.emphasis) }],
         messages: toMessages(o.messages),
         inferenceConfig: { maxTokens: o.maxTokens ?? 1024, temperature: o.temperature },
       }),
@@ -121,7 +124,7 @@ export async function chatJSON<T>(o: CallOpts & { schema: Record<string, unknown
     client().send(
       new ConverseCommand({
         modelId: o.model || MODELS.smart,
-        system: [{ text: withUs(o.system) }],
+        system: [{ text: withUs(o.system, o.emphasis) }],
         messages: toMessages(o.messages),
         inferenceConfig: { maxTokens: o.maxTokens ?? 4096, temperature: o.temperature },
         toolConfig: { tools: [tool], toolChoice: { tool: { name: tool.toolSpec!.name! } } },

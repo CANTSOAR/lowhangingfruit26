@@ -1,3 +1,4 @@
+import GeneratedText from "@/components/learning/GeneratedText";
 import Link from "next/link";
 import {
   PatientPortrait,
@@ -269,7 +270,7 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
                         </div>
                         {a.instructions && (
                           <p className="mt-2 whitespace-pre-line text-sm text-slate-700">
-                            {a.instructions}
+                            <GeneratedText text={a.instructions} />
                           </p>
                         )}
                         <p className="mt-1.5 text-xs text-slate-500">

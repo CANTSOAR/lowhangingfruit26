@@ -57,6 +57,8 @@ export function metaOf(row: CaseRow, u: User): CaseMeta {
 
 export interface LibraryItem extends CaseMeta {
   patient: string;
+  patientName: string;
+  portrait?: string;
   summary: string;
   encounterType: string;
   counts: { facts: number; actions: number; artifacts: number; variants: number };
@@ -72,6 +74,8 @@ export function listCases(u: User): LibraryItem[] {
     return {
       ...metaOf(row, u),
       patient: p.patient ? `${p.patient.name}, ${p.patient.age}` : "",
+      patientName: p.patient?.name || "Patient",
+      portrait: p.patient?.portrait,
       summary: p.summary || "",
       encounterType: p.encounterType || "",
       counts: { facts: p.facts?.length || 0, actions: p.actions?.length || 0, artifacts: p.artifacts?.length || 0, variants: (p.variants || []).filter((v) => v.approved).length },

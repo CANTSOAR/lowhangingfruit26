@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { PatientPortrait, ScoreRing } from "@/components/learning/Patient";
+import { PatientPortrait, ScoreRing, ScoreGauge } from "@/components/learning/Patient";
 import AppShell from "@/components/AppShell";
 import When from "@/components/courses/When";
+import VisitSearch from "@/components/episodes/VisitSearch";
 import {
   Badge,
-  Button,
   Card,
   Empty,
-  Input,
   LinkButton,
   PageHeader,
 } from "@/components/ui";
@@ -21,6 +20,7 @@ export default async function EpisodesPage({
 }) {
   const user = await requireUser();
   const q = await searchParams;
+  const view = q.view === "cards" ? "cards" : "table";
   const faculty = isFaculty(user);
   const episodes = searchEpisodes(user, {
     query: q.q,
@@ -46,41 +46,7 @@ export default async function EpisodesPage({
         }
       />
       <Card className="mb-4 p-4">
-        <form role="search" className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-0 flex-1 basis-64">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
-            >
-              <circle cx="10.5" cy="10.5" r="6.5" />
-              <path d="m16 16 4.5 4.5" />
-            </svg>
-            <Input
-              aria-label="Search visits"
-              name="q"
-              maxLength={250}
-              defaultValue={
-                q.q || q.patient || q.participant || q.role || q.text
-              }
-              placeholder="Search patients, teammates, roles or anything said in a visit…"
-              className="pl-12"
-            />
-          </div>
-          {q.view === "table" && (
-            <input type="hidden" name="view" value="table" />
-          )}
-          <Button type="submit">Search</Button>
-          <Link
-            href={q.view === "table" ? "/episodes?view=table" : "/episodes"}
-            className="text-sm text-slate-500 hover:underline"
-          >
-            Clear
-          </Link>
-        </form>
+        <VisitSearch key={`${view}:${q.q || q.patient || q.participant || q.role || q.text || ""}`} initialQuery={q.q || q.patient || q.participant || q.role || q.text || ""} view={view} />
       </Card>
       <div className="mb-4 flex items-center justify-between text-sm">
         <span className="text-slate-500">
@@ -88,27 +54,27 @@ export default async function EpisodesPage({
         </span>
         <div className="flex gap-2">
           <Link
-            className={`rounded-full px-3 py-2 ${q.view !== "table" ? "bg-brand-600 text-white" : "bg-white text-slate-600"}`}
+            className={`rounded-full px-3 py-2 ${view === "cards" ? "bg-brand-600 text-white" : "bg-white text-slate-600"}`}
             href={{ pathname: "/episodes", query: { ...q, view: "cards" } }}
           >
             Cards
           </Link>
           <Link
-            className={`rounded-full px-3 py-2 ${q.view === "table" ? "bg-brand-600 text-white" : "bg-white text-slate-600"}`}
+            className={`rounded-full px-3 py-2 ${view === "table" ? "bg-brand-600 text-white" : "bg-white text-slate-600"}`}
             href={{ pathname: "/episodes", query: { ...q, view: "table" } }}
           >
             Table
           </Link>
         </div>
       </div>
-      {episodes.length > 0 && q.view !== "table" && (
+      {episodes.length > 0 && view === "cards" && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {episodes.map((e) => (
             <Card key={e.id} className="patient-card overflow-hidden">
               <PatientPortrait
                 src={e.portrait}
                 name={e.patient}
-                className="h-36 w-full"
+                className="h-44 w-full"
               />
               <div className="space-y-3 p-5">
                 <div className="flex justify-between gap-3">
@@ -160,7 +126,7 @@ export default async function EpisodesPage({
       )}
       {episodes.length === 0 ? (
         <Empty>No episodes match.</Empty>
-      ) : q.view === "table" ? (
+      ) : view === "table" ? (
         <Card className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-[13px]">
             <thead>
@@ -177,16 +143,17 @@ export default async function EpisodesPage({
             </thead>
             <tbody>
               {episodes.map((e) => (
-                <tr key={e.id} className="border-b border-slate-100 align-top">
+                <tr key={e.id} className="border-b border-slate-100 align-middle">
                   <td className="whitespace-nowrap px-3 py-2 text-slate-600">
                     <When at={e.startedAt} />
                   </td>
                   <td className="px-3 py-2">
                     <Link
-                      href={`/episodes?patient=${encodeURIComponent(e.patient)}`}
-                      className="font-medium text-slate-900 hover:underline"
+                      href={{ pathname: "/episodes", query: { patient: e.patient, view } }}
+                      className="inline-flex items-center gap-3 font-medium text-slate-900 hover:underline"
                     >
-                      {e.patient}
+                      <PatientPortrait src={e.portrait} name={e.patient} className="h-10 w-10 shrink-0 rounded-full ring-2 ring-brand-50" initialsClassName="text-base" />
+                      <span>{e.patient}</span>
                     </Link>
                     {e.visitNumber > 1 && (
                       <Badge tone="blue" className="ml-1.5">
@@ -206,7 +173,7 @@ export default async function EpisodesPage({
                   </td>
                   <td className="px-3 py-2">
                     <Link
-                      href={`/episodes?participant=${encodeURIComponent(e.participant)}`}
+                      href={{ pathname: "/episodes", query: { participant: e.participant, view } }}
                       className="text-slate-800 hover:underline"
                     >
                       {e.participant}
@@ -225,7 +192,7 @@ export default async function EpisodesPage({
                     {e.feedbackHeld ? (
                       "Feedback held"
                     ) : e.status === "scored" && e.score !== null ? (
-                      `${Math.round(e.score)}%`
+                      <ScoreGauge value={e.score} />
                     ) : (
                       <span className="text-slate-500">
                         {e.status === "active" ? "in progress" : e.status}

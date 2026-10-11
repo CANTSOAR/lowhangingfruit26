@@ -319,6 +319,7 @@ async function rememberVisit(encId: string) {
     .join("\n");
   if (!talk) return;
   const memory = await chatText({
+    emphasis: false,
     model: MODELS.fast,
     maxTokens: 350,
     temperature: 0.3,

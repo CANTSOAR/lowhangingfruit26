@@ -525,6 +525,7 @@ export async function verifyLinks(cands: LinkCandidate[]): Promise<Set<number>> 
   try {
     const out = await chatJSON<{ results: { id: number; subject_earlier: string; subject_new: string; match: string; words_refer: boolean }[] }>({
       model: MODELS.chat,
+      emphasis: false,
       maxTokens: 4000,
       temperature: 0,
       schema: {

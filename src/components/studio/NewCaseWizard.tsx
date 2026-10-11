@@ -1,5 +1,7 @@
 "use client";
 
+import GeneratedText from "@/components/learning/GeneratedText";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -284,11 +286,11 @@ export default function NewCaseWizard({ groups, defaultRole }: { groups: { group
     return (
       <div className="mx-auto max-w-2xl">
         <PageHeader title="A few quick questions" subtitle="Your description leaves these open. Answer what you can; anything you skip, the guide decides and you can change it in the editor." />
-        <Panel title="Before the guide writes the case" subtitle={understood}>
+        <Panel title="Before the guide writes the case" subtitle={<GeneratedText text={understood} />}>
           <div className="space-y-5">
             {questions.map((q) => (
               <div key={q.id}>
-                <p className="text-sm font-medium text-slate-900">{q.question}</p>
+                <p className="text-sm font-medium text-slate-900">{<GeneratedText text={q.question} />}</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {q.suggestions.map((s) => (
                     <button

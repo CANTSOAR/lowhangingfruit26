@@ -50,11 +50,22 @@ export default async function FacultyHome() {
     `SELECT e.id, u.name AS student, c.title, e.score, e.faculty_score, e.ended_at FROM encounters e JOIN users u ON u.id = e.user_id JOIN cases c ON c.id = e.case_id
      WHERE e.status = 'scored' AND u.role = 'student' AND ${RECORDED_VISIT} ORDER BY e.ended_at DESC LIMIT 6`,
   );
+  const empty = !courses.length && !assignments.length && !queueTotal && !live && !recent.length;
 
   return (
     <AppShell user={user}>
       <PageHeader title={`Welcome, ${user.name}`} subtitle="What needs your attention across your courses." action={<LinkButton href="/faculty/courses">New course or assignment</LinkButton>} />
 
+      {empty ? (
+        <Card className="flex flex-col items-center border-brand-100 px-6 py-14 text-center">
+          <span className="mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-8 w-8"><path d="M12 5v15M3 4c3-1 6-1 9 1 3-2 6-2 9-1v15c-3-1-6-1-9 1-3-2-6-2-9-1z" /></svg>
+          </span>
+          <h2 className="text-lg font-semibold text-slate-900">Sorry, this is feeling a bit empty</h2>
+          <p className="mb-5 mt-2 max-w-md text-sm text-slate-500">Create your first course to bring students, assignments, and visit activity into this space.</p>
+          <LinkButton href="/faculty/courses">Create your first course</LinkButton>
+        </Card>
+      ) : <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Courses" value={courses.length} note={`${students} student${students === 1 ? "" : "s"} enrolled`} href="/faculty/courses" />
         <Stat label="Assignments" value={assignments.length} note={`${due.length} due around now`} href="/faculty/courses" />
@@ -196,6 +207,7 @@ export default async function FacultyHome() {
         </Card>
       </div>
 
+      </>}
       <h2 className="mb-2 mt-6 text-sm font-semibold text-slate-900">Go to</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {LINKS.map((l) => (

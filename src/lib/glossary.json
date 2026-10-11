@@ -621,6 +621,57 @@
         "teach-back",
         "teach back"
       ]
+    },
+    "lisinopril": {
+      "label": "Lisinopril",
+      "definition": "An ACE inhibitor used for high blood pressure and heart failure. It helps relax blood vessels.",
+      "source": "https://medlineplus.gov/druginfo/meds/a692051.html",
+      "aliases": [
+        "lisinopril"
+      ]
+    },
+    "metoprolol": {
+      "label": "Metoprolol",
+      "definition": "A beta blocker used for high blood pressure, chest pain and heart failure. It slows the heart rate. Metoprolol succinate is a long-acting form.",
+      "source": "https://medlineplus.gov/druginfo/meds/a682864.html",
+      "aliases": [
+        "metoprolol succinate",
+        "metoprolol tartrate",
+        "metoprolol"
+      ]
+    },
+    "carvedilol": {
+      "label": "Carvedilol",
+      "definition": "A beta blocker used for heart failure and high blood pressure. It slows the heart rate and relaxes blood vessels.",
+      "source": "https://medlineplus.gov/druginfo/meds/a697042.html",
+      "aliases": [
+        "carvedilol"
+      ]
+    },
+    "metformin": {
+      "label": "Metformin",
+      "definition": "A medicine for type 2 diabetes that helps control the amount of glucose, or sugar, in the blood.",
+      "source": "https://medlineplus.gov/druginfo/meds/a696005.html",
+      "aliases": [
+        "metformin"
+      ]
+    },
+    "fish_oil": {
+      "label": "Fish oil",
+      "definition": "A supplement containing omega-3 fats, which are also found in some fish.",
+      "source": "https://medlineplus.gov/ency/patientinstructions/000767.htm",
+      "aliases": [
+        "fish oil"
+      ]
+    },
+    "multivitamin": {
+      "label": "Multivitamin",
+      "definition": "A supplement containing a combination of vitamins; some products also contain minerals.",
+      "source": "https://medlineplus.gov/healthdefinitions/vitaminsdefinitions.html",
+      "aliases": [
+        "multivitamin",
+        "multivitamins"
+      ]
     }
   },
   "focusAreas": {

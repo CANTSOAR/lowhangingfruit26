@@ -1,5 +1,7 @@
 "use client";
 
+import GeneratedText from "@/components/learning/GeneratedText";
+
 import { useEffect, useRef, useState } from "react";
 import { Button, cx, Textarea } from "@/components/ui";
 import type { CaseProfile } from "@/lib/types";
@@ -51,7 +53,7 @@ export default function GuidePanel({ caseId, profileNow, onAccept, onClose }: { 
         json: {
           profile,
           // The guide is told what happened to its earlier proposals so it does not repeat or build on rejected ones.
-          messages: history.map((m) => ({ role: m.role, text: m.role === "assistant" && m.ops?.length ? `${m.text}\n[Proposed ${m.ops.length} edits: ${m.state === "accepted" ? "accepted by faculty" : m.state === "rejected" ? "rejected by faculty" : "not yet decided"}]` : m.text })),
+          messages: history.map((m) => ({ role: m.role, text: m.role === "assistant" && m.ops?.length ? `${m.role === "assistant" ? <GeneratedText text={m.text} /> : m.text}\n[Proposed ${m.ops.length} edits: ${m.state === "accepted" ? "accepted by faculty" : m.state === "rejected" ? "rejected by faculty" : "not yet decided"}]` : m.text })),
         },
       });
       setMsgs((cur) => [
@@ -117,7 +119,7 @@ export default function GuidePanel({ caseId, profileNow, onAccept, onClose }: { 
             </div>
           ) : (
             <div key={i} className={cx("rounded-lg border px-3 py-2", m.error ? "border-rose-200 bg-rose-50" : "border-slate-200 bg-slate-50")}>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">{m.text}</p>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800"><GeneratedText text={m.text} /></p>
               {m.views && m.views.length > 0 && (
                 <div className={cx("mt-2 border-t border-slate-200 pt-2", m.state !== "pending" && "opacity-70")}>
                   <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">

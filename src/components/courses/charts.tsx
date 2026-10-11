@@ -1,5 +1,6 @@
 "use client";
 import FocusArea from "@/components/learning/FocusArea";
+import RubricIcon from "@/components/learning/RubricIcon";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 // Chart tokens. One series colour throughout (checked with the dataviz palette validator against a
@@ -36,10 +37,31 @@ export interface BarItem {
   display: string;
   /** Extra line in the hover tooltip. */
   detail?: string;
+  /** Score divisions; point checklists can use a continuous meter. */
+  steps?: number;
 }
 const TAG = { red: "bg-rose-100 text-rose-800", amber: "bg-amber-100 text-amber-800", slate: "bg-slate-100 text-slate-700" };
 
-export function BarList({ items, max = 100, unit }: { items: BarItem[]; max?: number; unit: string }) {
+export function BarList({ items, max = 100, unit, rubric = false }: { items: BarItem[]; max?: number; unit: string; rubric?: boolean }) {
+  if (rubric) return (
+    <ul className="space-y-2" aria-label={unit}>
+      {items.map((it, index) => {
+        const pct = Math.max(0, Math.min(100, (it.value / max) * 100));
+        return (
+          <li key={it.key} tabIndex={0} data-tooltip={`${it.label}: ${it.display}. ${it.detail || ""}`} className="group grid items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-3 outline-none hover:border-brand-100 hover:bg-brand-50/50 focus-visible:ring-2 focus-visible:ring-brand-300 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-brand-600 shadow-sm ring-1 ring-brand-100"><RubricIcon area={it.key} /></span>
+              <span className="text-sm font-medium leading-snug text-slate-800"><FocusArea area={it.key} label={it.label} /></span>
+            </div>
+            <div role="meter" aria-label={it.label} aria-valuemin={0} aria-valuemax={max} aria-valuenow={it.value} aria-valuetext={it.display} className="relative h-3 overflow-hidden rounded-full bg-blue-100/70 ring-1 ring-inset ring-blue-200/60">
+              <div className="rubric-meter-fill absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-400 to-brand-600" style={{ width: `${pct}%`, animationDelay: `${index * 65}ms` }} />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${it.steps || 4}, minmax(0, 1fr))` }}>{Array.from({ length: it.steps || 4 }, (_, step) => <span key={step} className={step ? "border-l-2 border-white" : ""} />)}</div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
   return (
     <ul className="space-y-0.5" aria-label={unit}>
       {items.map((it) => {
@@ -111,14 +133,14 @@ export function SkillDots({ items, ticks, lo, hi }: { items: SkillDot[]; ticks: 
   const x = scale(lo, hi);
   const cols = "grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)_2.5rem] items-center gap-x-2 sm:gap-x-3 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)_3rem]";
   return (
-    <div>
+    <div className="skill-dots">
       <div className={`${cols} pb-1`}>
         <span className="text-[11px] text-slate-500">Rubric domain</span>
         <div className="relative h-4">
           {ticks.map((t) => (
             <span key={t.level} className="absolute -translate-x-1/2 whitespace-nowrap text-[11px] tabular-nums text-slate-500" style={{ left: `${x(t.rating)}%` }}>
-              <span className="sm:hidden">L{t.level}</span>
-              <span className="hidden sm:inline">Level {t.level}</span>
+              <span aria-label={`Level ${t.level}`} className="skill-level-compact">{t.level}</span>
+              <span className="skill-level-full">Level {t.level}</span>
             </span>
           ))}
         </div>

@@ -1,4 +1,5 @@
 "use client";
+import GeneratedText from "@/components/learning/GeneratedText";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Input, Label, Select, Textarea, cx } from "@/components/ui";
@@ -54,7 +55,7 @@ function GuideNote({ children }: { children: React.ReactNode }) {
   return (
     <p className="mt-1.5 rounded border-l-2 border-brand-500 bg-brand-50 px-2 py-1 text-xs text-slate-700">
       <span className="font-medium text-brand-700">Guide: </span>
-      {children}
+      {typeof children === "string" ? <GeneratedText text={children} /> : children}
     </p>
   );
 }
@@ -239,7 +240,7 @@ export default function AssignmentBuilder({
                 {reasons.gaps && (
                   <p className="rounded bg-amber-50 px-2 py-1 text-amber-900">
                     <span className="font-medium">Not covered by your published patients: </span>
-                    {reasons.gaps}
+                    <GeneratedText text={reasons.gaps} />
                   </p>
                 )}
                 <p>Each suggestion has a short reason next to the field it filled in.</p>
@@ -361,7 +362,7 @@ export default function AssignmentBuilder({
                             {on && <GuideNote>{reasons?.cases[c.id]}</GuideNote>}
                             {open === c.id && (
                               <div className="mt-2 space-y-1.5 text-xs text-slate-700">
-                                <p>{c.summary}</p>
+                                <p><GeneratedText text={c.summary} /></p>
                                 {c.objectives.length > 0 && (
                                   <ul className="list-disc space-y-0.5 pl-4">
                                     {c.objectives.map((o, i) => (

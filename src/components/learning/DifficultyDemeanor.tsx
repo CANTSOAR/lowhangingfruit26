@@ -1,8 +1,8 @@
 import { INTERVIEW_STYLES } from "@/lib/engine/difficulty";
 
-export default function DifficultyDemeanor({ level, patient }: { level: number; patient: string }) {
+export default function DifficultyDemeanor({ level, patient, integrated = false }: { level: number; patient: string; integrated?: boolean }) {
   const style = INTERVIEW_STYLES[level];
-  return <span tabIndex={0} role="img" aria-label={`${patient}: ${style.label} interview difficulty`} data-tooltip={`Level ${level}: ${style.label} · ${style.description}`} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-brand-100 bg-brand-50 text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600">
+  return <span tabIndex={0} role="img" aria-label={`${patient}: ${style.label} interview difficulty`} data-tooltip={`Level ${level}: ${style.label} · ${style.description}`} className={`grid h-11 w-11 shrink-0 place-items-center text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600 ${integrated ? "rounded-l-lg" : "rounded-xl border border-brand-100 bg-brand-50"}`}>
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" className="h-7 w-7">
       <circle cx="12" cy="12" r="9" />
       <path d="M8 10h.01M16 10h.01" strokeWidth="3" />

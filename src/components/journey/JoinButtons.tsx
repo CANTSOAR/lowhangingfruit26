@@ -2,6 +2,7 @@
 
 import { SmartText } from "@/components/learning/SmartHighlights";
 import ProfessionIcon from "@/components/learning/ProfessionIcon";
+import InfoHelp from "@/components/learning/InfoHelp";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge, Button } from "@/components/ui";
@@ -60,8 +61,9 @@ export default function JoinButtons({
             >
               {s.order}
             </span>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
+            <InfoHelp className="absolute right-3 top-3" label={`About your AI colleague for ${s.roleTitle}`} text={`Your AI colleague: If you do not take this role, the AI plays ${s.clinicianName} (${s.clinicianRole}).`} />
+            <div className="pr-7 sm:pr-0">
+              <div className="flex flex-wrap items-center gap-2 pr-6">
                 <span className="text-xs font-semibold text-slate-500">
                   Encounter {s.order}
                 </span>
@@ -78,18 +80,12 @@ export default function JoinButtons({
                 {s.roleTitle}
               </h3>
               <p className="mt-1 text-sm text-slate-700"><SmartText text={s.focus} /></p>
-              <details className="mt-3 text-xs text-slate-500">
-                <summary className="cursor-pointer">Your AI colleague</summary>
-                <p className="mt-1">
-                  If you do not take this role, the AI plays {s.clinicianName} (
-                  {s.clinicianRole}).
-                </p>
-              </details>
             </div>
             <Button
               onClick={() => join(s.id)}
               disabled={!!busy}
-              variant={s.suggested ? "primary" : "secondary"}
+              variant="primary"
+              className="sm:mt-6"
             >
               {busy === s.id
                 ? "Starting"

@@ -1,5 +1,7 @@
 "use client";
 
+import GeneratedText from "@/components/learning/GeneratedText";
+
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge, Button, Card, CardHeader, Textarea, cx } from "@/components/ui";
@@ -259,7 +261,7 @@ function HuddleItemCard({ view, item, onOpen, refresh }: { view: RunView; item: 
         {item.positions.map((p, i) => (
           <div key={i} className="rounded-md bg-slate-50 px-3 py-2 text-sm">
             <div className="text-[11px] font-semibold text-slate-500">{p.name} · {p.role}</div>
-            <p className="text-slate-800">{p.text}</p>
+            <p className="text-slate-800"><GeneratedText text={p.text} /></p>
             {p.cites.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1">
                 {p.cites.map((id) => {
@@ -276,7 +278,7 @@ function HuddleItemCard({ view, item, onOpen, refresh }: { view: RunView; item: 
             <div className="rounded-md bg-slate-50 px-3 py-2 text-sm"><div className="text-[11px] font-semibold text-slate-500">Team response</div>{item.outcome.teamResponse}</div>
             <button onClick={() => onOpen(item.outcome!.entryId)} className={cx("w-full rounded-md border px-3 py-2 text-left text-sm", item.outcome.decision === "resolved" ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50")}>
               <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">{item.outcome.decision === "resolved" ? "Recorded as resolved" : "Stays open, with an owner"}</div>
-              <div className="text-slate-900">{item.outcome.text}</div>
+              <div className="text-slate-900"><GeneratedText text={item.outcome.text} /></div>
               {item.outcome.owner && <div className="text-[11px] text-slate-600">Owner: {item.outcome.owner}</div>}
             </button>
           </>
@@ -515,7 +517,7 @@ export default function RunHub({ runId }: { runId: string }) {
                     {m.meta?.act && <Badge>{m.meta.act.replace("_", " ")}</Badge>}
                     {m.meta?.loop === "closed" && <Badge tone="green">Loop closed</Badge>}
                   </div>
-                  {m.text}
+                  {m.fromIsAi ? <GeneratedText text={m.text} /> : m.text}
                 </div>
               ))}
               {!view.messages.some((m) => m.thread !== "huddle" && m.thread !== "plan") && <p className="text-sm text-slate-500">No messages yet.</p>}
