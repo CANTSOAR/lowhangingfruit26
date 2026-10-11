@@ -5,6 +5,24 @@ import { join } from "node:path";
 import test from "node:test";
 import type { User } from "../src/lib/types";
 
+test("consent forms preserve same-origin POSTs and reject opaque or foreign origins", async () => {
+  const { default: config } = await import("../next.config");
+  const headers = await config.headers!();
+  const consent = headers.find((rule) => rule.source === "/oauth/:path*");
+  // no-referrer makes native form POSTs send Origin: null, even on our own site.
+  assert.equal(consent?.headers.find((h) => h.key === "Referrer-Policy")?.value, "same-origin");
+  const { POST } = await import("../src/app/api/oauth/consent/route");
+  for (const origin of [undefined, "null", "https://foreign.example"]) {
+    const response = await POST(new Request("http://localhost/api/oauth/consent", {
+      method: "POST",
+      headers: origin ? { Origin: origin } : {},
+      body: "action=approve",
+    }));
+    assert.equal(response.status, 403);
+    assert.equal(await response.text(), "Invalid origin");
+  }
+});
+
 test("MCP permissions and OAuth lifecycle", async (t) => {
   const dir = mkdtempSync(join(tmpdir(), "poscere-mcp-"));
   process.env.DB_PATH = join(dir, "test.db");
