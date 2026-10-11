@@ -5,7 +5,6 @@ import {
   LevelPips,
   ScoreRing,
 } from "@/components/learning/Patient";
-import { Term } from "@/components/learning/Preferences";
 import { ScoreSpark } from "@/components/courses/charts";
 import AppShell from "@/components/AppShell";
 import JoinCourseDialog from "@/components/courses/JoinCourseDialog";
@@ -52,9 +51,9 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
   const joined = typeof joinedId === "string" ? get<{ name: string }>("SELECT co.name FROM courses co JOIN enrollments en ON en.course_id = co.id WHERE co.id = ? AND en.user_id = ?", joinedId, user.id) : undefined;
   const role = profession(user.profession_id);
   const rec = recommend(user.id, role.id);
-  const recCard = rec.caseId
-    ? publishedCaseCards().find((c) => c.id === rec.caseId)
-    : null;
+  const library = publishedCaseCards();
+  const recCard = library.find((c) => c.id === rec.caseId);
+  const otherPatients = library.filter((c) => c.id !== rec.caseId).sort((a, b) => Number(b.professions.includes(role.id)) - Number(a.professions.includes(role.id)) || a.patientFirstName.localeCompare(b.patientFirstName)).slice(0, 4);
   const assignments = studentAssignments(user.id);
   const courses = all<{ id: string; name: string }>(
     "SELECT co.id, co.name FROM courses co JOIN enrollments en ON en.course_id = co.id WHERE en.user_id = ? ORDER BY co.name",
@@ -70,10 +69,11 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
     state: string;
     status: string;
     started_at: string;
+    portrait: string | null;
     assignment: string | null;
     journey_run_id: string | null;
   }>(
-    `SELECT e.id, e.case_id, e.config, e.state, e.status, e.started_at, a.title AS assignment, e.journey_run_id
+    `SELECT json_extract(c.profile, '$.patient.portrait') AS portrait, e.id, e.case_id, e.config, e.state, e.status, e.started_at, a.title AS assignment, e.journey_run_id
      FROM encounters e JOIN cases c ON c.id = e.case_id LEFT JOIN assignments a ON a.id = e.assignment_id
      WHERE e.user_id = ? AND e.status IN ('active','paused') AND e.started_at > datetime('now','-14 days') ORDER BY e.started_at DESC LIMIT 6`,
     user.id,
@@ -89,8 +89,9 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
     assignment_id: string | null;
     assignment: string | null;
     faculty_note: string | null;
+    portrait: string | null;
   }>(
-    `SELECT e.id, e.case_id, e.config, e.score, e.faculty_score, e.ended_at, e.attempt, e.assignment_id, a.title AS assignment, e.faculty_note
+    `SELECT json_extract(c.profile, '$.patient.portrait') AS portrait, e.id, e.case_id, e.config, e.score, e.faculty_score, e.ended_at, e.attempt, e.assignment_id, a.title AS assignment, e.faculty_note
      FROM encounters e JOIN cases c ON c.id = e.case_id LEFT JOIN assignments a ON a.id = e.assignment_id
      WHERE e.user_id = ? AND e.status = 'scored' ORDER BY e.ended_at DESC LIMIT 6`,
     user.id,
@@ -135,7 +136,7 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
               <PatientPortrait
                 src={recCard?.portrait}
                 name={recCard?.patientFirstName || "Your next patient"}
-                className="h-56 sm:h-full"
+                className="h-56 sm:h-96"
               />
               <div className="space-y-4 p-6">
                 <span className="text-xs font-semibold uppercase tracking-widest text-brand-600">
@@ -154,11 +155,6 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
                       {recCard.encounterType} · {role.name}
                     </p>
                     <LevelPips level={rec.level} />
-                    {recCard.aiDraft && (
-                      <div>
-                        <Badge tone="amber">AI · unreviewed</Badge>
-                      </div>
-                    )}
                     <div>
                       <StartVisit
                         size="lg"
@@ -189,6 +185,24 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
               </div>
             </div>
           </Card>
+
+          {otherPatients.length > 0 && <section aria-labelledby="more-patients">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div><h2 id="more-patients" className="text-base font-semibold text-slate-900">More patients to meet</h2><p className="mt-1 text-xs text-slate-500">A different conversation. Another chance to practice.</p></div>
+              <Link href="/student/practice" className="shrink-0 text-sm font-medium text-brand-700 hover:underline">View all →</Link>
+            </div>
+            <div className="grid gap-3 xl:grid-cols-2">
+              {otherPatients.map(c => <Card key={c.id} className="patient-card flex items-center gap-4 p-4">
+                <PatientPortrait src={c.portrait} name={c.patientFirstName} className="h-20 w-20 shrink-0 rounded-2xl" initialsClassName="text-xl" />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-slate-900">{c.patientFirstName}{c.age !== null && `, ${c.age}`}</h3>
+                  <p className="mb-2 mt-1 text-xs text-slate-500">{c.encounterType || "Practice visit"}</p>
+                  {!c.professions.includes(role.id) && <p className="mb-2 text-xs text-slate-500">Practice as {profession(c.professions[0]).name}</p>}
+                  <div className="flex flex-wrap items-center justify-between gap-2"><span className="rounded-full bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700">Level {c.difficulty}</span><StartVisit body={{caseId:c.id, mode:"practice", level:c.difficulty}} label={`Meet ${c.patientFirstName}`} size="sm" variant="secondary" /></div>
+                </div>
+              </Card>)}
+            </div>
+          </section>}
 
           {/* ---------- Assignments ---------- */}
           <Card id="assignments" className={`scroll-mt-4 ${open.length ? "max-lg:order-first" : ""}`}>
@@ -330,8 +344,6 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
                                       {c.scoredCount > 0 &&
                                         !feedbackVisible &&
                                         " · submitted, feedback not released yet"}
-                                      {c.card.aiDraft &&
-                                        " · AI draft, not faculty-reviewed"}
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -411,7 +423,8 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
                       key={e.id}
                       className="flex items-center justify-between gap-3 px-4 py-2.5"
                     >
-                      <div className="min-w-0">
+                      <PatientPortrait src={e.portrait} name={(labels.get(e.case_id) || "Patient").split(",")[0]} className="h-11 w-11 shrink-0 rounded-full" initialsClassName="text-sm" />
+                      <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium text-slate-900">
                           {cfg.journey?.roleTitle
                             ? `${(labels.get(e.case_id) || "Visit").split(" · ")[0]} · ${cfg.journey.roleTitle}`
@@ -493,7 +506,8 @@ export default async function StudentHome({ searchParams }: { searchParams: Prom
                   const hidden = !!e.assignment_id && held.has(e.assignment_id);
                   const body = (
                     <>
-                      <div className="min-w-0">
+                      <PatientPortrait src={e.portrait} name={(labels.get(e.case_id) || "Patient").split(",")[0]} className="h-11 w-11 shrink-0 rounded-full" initialsClassName="text-sm" />
+                      <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium text-slate-900">
                           {cfg.journey?.roleTitle
                             ? `${(labels.get(e.case_id) || "Visit").split(" · ")[0]} · ${cfg.journey.roleTitle}`

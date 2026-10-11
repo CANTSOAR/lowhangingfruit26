@@ -4,9 +4,9 @@ import { briefParts, feedbackParts } from "@/lib/feedback-text";
 import { Term } from "./Preferences";
 import GeneratedText from "./GeneratedText";
 import { emphasisParts } from "@/lib/text-format";
-const Highlights = createContext<{ on: boolean; toggle: () => void }>({on:false,toggle:()=>{}});
+const Highlights = createContext<{ on: boolean; toggle: () => void }>({on:true,toggle:()=>{}});
 export function SmartHighlights({children}: {children: ReactNode}) {
-  const [on, setOn] = useState(false);
+  const [on, setOn] = useState(true);
   return <Highlights.Provider value={{on,toggle:()=>setOn(v=>!v)}}>{children}</Highlights.Provider>;
 }
 export function SmartHighlightToggle() {
@@ -19,7 +19,7 @@ export function SmartHighlightToggle() {
 /** Decorate only the briefing and record already visible to the student. */
 export function SmartText({text}: {text: string}) {
   const {on} = useContext(Highlights);
-  if (!on) return <GeneratedText text={text} />;
+  if (!on) return <GeneratedText text={text} highlight={false} />;
   return <>{emphasisParts(text).map((emphasis, k) => <span key={k}>{briefParts(emphasis.text).map((part,i) => <span key={i}>{feedbackParts(part.text).map((p,j) => {
     const content = p.term ? <Term term={p.term} label={p.text} inline /> : p.text;
     return emphasis.bold || part.important || p.term ? <mark key={j} className={`rounded px-0.5 text-inherit ${emphasis.bold || part.important ? "bg-blue-100" : "bg-amber-100"}`}>{emphasis.bold ? <strong className="font-semibold">{content}</strong> : content}</mark> : <span key={j}>{content}</span>;

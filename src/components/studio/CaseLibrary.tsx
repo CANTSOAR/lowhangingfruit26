@@ -3,6 +3,7 @@
 import GeneratedText from "@/components/learning/GeneratedText";
 import { PatientPortrait } from "@/components/learning/Patient";
 
+import Dialog from "@/components/learning/Dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -16,8 +17,7 @@ export function StatusBadges({ c }: { c: { status: string; origin: string; revie
       {c.status === "published" && <Badge tone="green">Published</Badge>}
       {c.status === "draft" && <Badge tone="slate">Draft</Badge>}
       {c.status === "archived" && <Badge tone="slate">Archived</Badge>}
-      {c.origin === "ai_draft" && !c.reviewed && <Badge tone="amber">AI-drafted, not faculty-reviewed</Badge>}
-      {c.origin === "ai_draft" && c.reviewed && <Badge tone="teal">AI-drafted, faculty-reviewed</Badge>}
+      {c.origin === "ai_draft" && c.reviewed && <Badge tone="teal">Faculty-reviewed</Badge>}
       {c.origin === "sample" && <Badge tone="blue">Sample</Badge>}
     </>
   );
@@ -32,8 +32,9 @@ const when = (s: string) => {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
-export default function CaseLibrary({ initial, professions }: { initial: LibraryItem[]; professions: { id: string; name: string }[] }) {
+export default function CaseLibrary({ initial, professions, courses }: { courses: {id: string; name: string}[]; initial: LibraryItem[]; professions: { id: string; name: string }[] }) {
   const router = useRouter();
+  const [assigning, setAssigning] = useState<LibraryItem | null>(null);
   const [cases, setCases] = useState(initial);
   const [q, setQ] = useState("");
   const [role, setRole] = useState("");
@@ -78,10 +79,13 @@ export default function CaseLibrary({ initial, professions }: { initial: Library
   return (
     <>
       <PageHeader
-        title="Patient Studio"
-        subtitle="Build, review and publish simulated patients. Students only see patients you have published."
+        title="Patients"
+        subtitle="Find the right conversation for your class. Assign a patient, explore their case, or try a visit."
         action={<LinkButton href="/faculty/cases/new">New patient</LinkButton>}
       />
+      <div className="mb-5 flex flex-wrap gap-2" aria-label="Patient status shortcuts">
+        {[["active", "All active", cases.filter(c => c.status !== "archived").length], ["published", "Published", cases.filter(c => c.status === "published").length], ["draft", "In preparation", cases.filter(c => c.status === "draft").length]].map(([value,label,count]) => <button key={value} onClick={() => setStatus(String(value))} aria-pressed={status === value} className={`rounded-full border px-4 py-2 text-sm font-medium ${status === value ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-600"}`}>{label} <span className="ml-2 opacity-75">{count}</span></button>)}
+      </div>
       <div className="mb-4 grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by title, patient name or specialty" aria-label="Search patients" />
         <Select value={role} onChange={(e) => setRole(e.target.value)} aria-label="Filter by learner role" className="sm:w-52">
@@ -103,7 +107,7 @@ export default function CaseLibrary({ initial, professions }: { initial: Library
           <option value="mine">Created by me</option>
           <option value="sample">Samples</option>
           <option value="faculty">Faculty-written</option>
-          <option value="ai_unreviewed">AI-drafted, not reviewed</option>
+          <option value="ai_unreviewed">Awaiting faculty review</option>
         </Select>
       </div>
       {error && (
@@ -111,6 +115,11 @@ export default function CaseLibrary({ initial, professions }: { initial: Library
           {error}
         </Notice>
       )}
+      <p role="status" className="mb-3 text-xs text-slate-500">{shown.length} patient{shown.length === 1 ? "" : "s"} shown</p>
+      <Dialog open={!!assigning} onClose={() => setAssigning(null)} title={`Assign ${assigning?.patientName || "patient"}`}>
+        <p className="mb-4 text-sm text-slate-600">Choose a course. You can set the visit level, due date, and instructions before publishing the assignment.</p>
+        {courses.length ? <div className="space-y-3">{courses.map(c => <Link key={c.id} href={`/faculty/courses/${c.id}/assignments/new?patient=${encodeURIComponent(assigning?.id || "")}`} className="flex items-center justify-between rounded-xl border border-slate-200 p-4 font-medium hover:border-brand-500 hover:bg-brand-50">{c.name}<span aria-hidden="true">→</span></Link>)}</div> : <div className="rounded-xl bg-brand-50 p-4"><p className="mb-3 text-sm text-slate-700">Create a course first to give your students a place to join.</p><LinkButton href="/faculty/courses">Create a course</LinkButton></div>}
+      </Dialog>
       {!shown.length ? (
         <Empty>
           {cases.length ? "No patients match these filters." : "You have no patients yet."}{" "}
@@ -119,32 +128,29 @@ export default function CaseLibrary({ initial, professions }: { initial: Library
           </Link>
         </Empty>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {shown.map((c) => (
-            <li key={c.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <li key={c.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-brand-200">
               <div className="flex items-start gap-3 sm:gap-4">
                 <PatientPortrait src={c.portrait} name={c.patientName} className="h-14 w-14 shrink-0 rounded-full ring-2 ring-brand-50 sm:h-20 sm:w-20" initialsClassName="text-xl" />
                 <div className="min-w-0 flex-1">
               <div className="flex flex-col items-start justify-between gap-3 md:flex-row">
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex flex-wrap items-center gap-1.5">
-                    <StatusBadges c={c} />
-                    {c.openHigh > 0 && <Badge tone="red">{c.openHigh} high-severity issue{c.openHigh === 1 ? "" : "s"} open</Badge>}
-                  </div>
-                  <Link href={`/faculty/cases/${c.id}`} className="text-[15px] font-semibold text-slate-900 hover:text-brand-700">
-                    {c.title}
+                  <Link href={`/faculty/cases/${c.id}`} className="text-lg font-semibold text-slate-900 hover:text-brand-700">
+                    {c.patient || c.patientName}
                   </Link>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    {[c.patient, c.professions.map(roleName).join(", "), c.specialty, `Difficulty ${c.difficulty} of 5`].filter(Boolean).join("  ·  ")}
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2"><Badge tone="blue">{c.specialty || c.encounterType || "Practice visit"}</Badge><Badge tone="violet">Level {c.difficulty}</Badge><StatusBadges c={c} />{c.openHigh > 0 && <Badge tone="red">{c.openHigh} issue{c.openHigh === 1 ? "" : "s"} to resolve</Badge>}</div>
+                  <p className="mt-2 text-sm font-medium text-slate-700">{c.title}</p>
+                  <p className="mt-1 text-xs text-slate-500">{c.professions.map(roleName).join(", ")}</p>
                   {c.summary && <p className="mt-1.5 line-clamp-2 max-w-4xl text-sm text-slate-600"><GeneratedText text={c.summary} /></p>}
-                  <p className="mt-1.5 text-xs text-slate-400">
+                  <details className="mt-2 text-xs text-slate-500"><summary className="w-fit cursor-pointer font-medium text-brand-700">Case details</summary><p className="mt-2">
                     {c.counts.facts} facts, {c.counts.actions} exams and orders, {c.counts.artifacts} documents
                     {c.counts.variants ? `, ${c.counts.variants} approved variant${c.counts.variants === 1 ? "" : "s"}` : ""} · edited {when(c.updatedAt)}
-                  </p>
+                  </p></details>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-                  <LinkButton href={`/faculty/cases/${c.id}`} size="sm">
+                  {c.status === "published" && <Button size="sm" onClick={() => setAssigning(c)}>Assign</Button>}
+                  <LinkButton href={`/faculty/cases/${c.id}`} size="sm" variant="secondary">
                     Open
                   </LinkButton>
                   <Button

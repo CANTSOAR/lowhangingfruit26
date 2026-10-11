@@ -188,7 +188,7 @@ export default function Visit({
   const [ordering, setOrdering] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [joined, setJoined] = useState(false);
-  const [highlightBrief, setHighlightBrief] = useState(false);
+  const [highlightBrief, setHighlightBrief] = useState(true);
   const [micOn, setMicOn] = useState(false);
   const [micSupported, setMicSupported] = useState(true);
   const [interim, setInterim] = useState("");

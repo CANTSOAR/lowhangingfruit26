@@ -2,7 +2,7 @@
 import DifficultyDemeanor from "@/components/learning/DifficultyDemeanor";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, Empty, Label, LinkButton, Select } from "@/components/ui";
+import { Button, Card, Empty, Label, LinkButton, Select } from "@/components/ui";
 import { PatientPortrait, ScoreRing } from "@/components/learning/Patient";
 import { Term } from "@/components/learning/Preferences";
 import { LEVEL_NAMES } from "@/lib/engine/difficulty";
@@ -61,12 +61,6 @@ export function CaseCard({
         {c.professions.map((p) => professionNames[p] || p).join(", ")}
         {c.specialty && ` · ${c.specialty}`}
       </p>
-      {c.aiDraft && (
-        <div className="mt-3 flex flex-wrap items-center gap-1">
-          <Badge tone="amber">AI · unreviewed</Badge>
-          <Term term="draft" />
-        </div>
-      )}
       {(c.attempts > 0 || c.best !== null) ? <div className="my-4 min-h-20 flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3">
         <div className="text-xs text-slate-500">
           <p>

@@ -147,3 +147,7 @@ a {
 .inline-term-plain { display: none; }
 [data-plain-language="off"] .inline-term-trigger { display: none; }
 [data-plain-language="off"] .inline-term-plain { display: inline; }
+
+/* Shared model emphasis remains visible on prose surfaces. */
+.generated-highlight { background: #dbeafe; color: #172554; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.dashboard-banner { background: radial-gradient(ellipse at top right, #286595 0%, transparent 65%), #102f4b; }

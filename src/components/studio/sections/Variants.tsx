@@ -57,7 +57,7 @@ function VariantCard({ v, p, up, remove }: { v: Variant; p: CaseProfile; up: (pa
       <div className="flex flex-wrap items-start justify-between gap-2 px-3 py-2.5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            {v.approved ? <Badge tone="green">Approved for students</Badge> : <Badge tone="amber">AI draft, not approved</Badge>}
+            {v.approved ? <Badge tone="green">Approved for students</Badge> : <Badge tone="amber">Awaiting approval</Badge>}
             <span className="text-sm font-semibold text-slate-900">{v.label || "Untitled variant"}</span>
           </div>
           <p className="mt-0.5 text-xs text-slate-600">{v.description}</p>

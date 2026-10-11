@@ -7,10 +7,13 @@ import { requireUser } from "@/lib/auth";
 import { courseFor, publishedCaseBriefs, publishedJourneys } from "@/lib/courses";
 import { professions } from "@/lib/professions";
 
-export default async function NewAssignment({ params }: { params: Promise<{ id: string }> }) {
+export default async function NewAssignment({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ patient?: string }> }) {
   const user = await requireUser("faculty");
   const course = courseFor(user, (await params).id);
   if (!course) notFound();
+  const cases = publishedCaseBriefs();
+  const patient = (await searchParams).patient;
+  const selected = cases.find(c => c.id === patient);
   return (
     <AppShell user={user}>
       <div className="mb-2 text-xs text-slate-500">
@@ -27,7 +30,8 @@ export default async function NewAssignment({ params }: { params: Promise<{ id: 
       <AssignmentBuilder
         courseId={course.id}
         courseProfession={course.profession_id}
-        cases={publishedCaseBriefs()}
+        cases={cases}
+        preselectedCaseId={selected?.id}
         journeys={publishedJourneys().map((j) => ({ id: j.id, title: j.title }))}
         professionNames={Object.fromEntries(professions().map((p) => [p.id, p.name]))}
       />
