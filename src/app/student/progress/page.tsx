@@ -171,7 +171,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Pro
                     <h3 className="text-sm font-semibold text-slate-900">{c.title}</h3>
                     <p className="mt-0.5 text-xs text-slate-500">
                       {c.attempts.length} attempt{c.attempts.length === 1 ? "" : "s"} · best {Math.round(best)}%
-                      {change !== null && ` · ${change > 0 ? "up" : change < 0 ? "down" : "no change"}${change ? ` ${Math.abs(change)} points` : ""} from first to latest`}
+                      {change !== null && ` · ${change > 0 ? "up" : change < 0 ? "down" : "no change"}${change ? ` ${Math.abs(change)} percentage points` : ""} from first to latest`}
                     </p>
                   </div>
                   {scores.length > 1 && (

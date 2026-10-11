@@ -61,6 +61,16 @@ Rules:
 - Judge against what was actually known in this encounter (listed for you). Do not expect things that were never found.
 - A blank SBAR section cannot show any behaviour. If Recommendation is blank, "next action requested" is "no".`;
 
+/** The evaluator sometimes returns no behaviours at all; an empty result is retried, never scored as "nothing observed". */
+async function withBehaviours<T extends { behaviours?: unknown }>(call: () => Promise<T>): Promise<T> {
+  let out = await call();
+  for (let i = 0; i < 2 && !(Array.isArray(out.behaviours) && out.behaviours.length); i++) {
+    console.warn("[journey] evaluator returned no behaviours; retrying");
+    out = await call();
+  }
+  return out;
+}
+
 /** Evaluation accepts a shorter verbatim run than state extraction: the judgement is the evaluator's, the words must still be the author's. */
 const said = (quote: string, text: string) => quoteIn(quote, text, 4);
 
@@ -113,7 +123,7 @@ export async function evaluateSbar(run: LoadedRun, handoffId: string): Promise<T
   const voice = h.authorIsAi
     ? `Feedback is written in the third person about ${h.authorName} ("${h.authorName} states...", "the handoff could have..."), because a learner reads it as a worked example. Never address the author as "you".`
     : 'Feedback is addressed to the author as "you".';
-  const raw = await chatJSON<{ behaviours: { key: string; observed: Observed; section: string; quote: string; feedback: string }[]; summary: string }>({
+  const raw = await withBehaviours(() => chatJSON<{ behaviours: { key: string; observed: Observed; section: string; quote: string; feedback: string }[]; summary: string }>({
     model: MODELS.smart,
     system: `${EVAL_RULES}
 - ${voice}
@@ -145,11 +155,11 @@ BEHAVIOURS TO EVALUATE (return one result per key, same order)
 ${defs.map((b) => `${b.key}: ${b.label}. ${b.question}`).join("\n")}`,
       },
     ],
-  });
+  }));
   const results = arr<{ key: string; observed: Observed; section: string; quote: string; feedback: string }>(raw.behaviours);
   const behaviours: BehaviourResult[] = defs.map((b) => {
     const r = results.find((x) => x.key === b.key);
-    if (!r) return { key: b.key, observed: "no", location: "SBAR", quote: "", verified: false, feedback: "Not evaluated." };
+    if (!r) return { key: b.key, observed: "no", location: "SBAR", quote: "", verified: false, feedback: "Could not be evaluated automatically this time." };
     let section = SBAR_FIELDS.find((f) => f.key === r.section);
     let located = !!section && said(r.quote, h.sbar[section.key]);
     if (!located && r.quote) {
@@ -232,7 +242,7 @@ export async function evaluateStudent(run: LoadedRun): Promise<TraceEvaluation> 
   const consultText = consults.map((m) => `${m.fromIsAi ? m.fromName : "LEARNER"} -> ${m.toRole || "team"}: ${m.text}`).join("\n");
   const huddleText = huddle.map((m) => `${m.fromIsAi ? m.fromName : "LEARNER"}: ${m.text}`).join("\n");
 
-  const raw = await chatJSON<{ behaviours: { key: string; observed: Observed; source: string; turn?: number; quote: string; feedback: string }[]; summary: string }>({
+  const raw = await withBehaviours(() => chatJSON<{ behaviours: { key: string; observed: Observed; source: string; turn?: number; quote: string; feedback: string }[]; summary: string }>({
     model: MODELS.smart,
     system: EVAL_RULES + "\n- Feedback is addressed to the learner as \"you\".\n- Only the LEARNER's own words count as evidence of the learner's behaviour. Colleagues' words are context.\n- When the source is the visit, give the turn number shown in the transcript ([T3] is turn 3). There is no turn 0.",
     schema: STAGE_SCHEMA,
@@ -270,7 +280,7 @@ BEHAVIOURS TO EVALUATE (one result per key, same order)
 ${defs.map((b) => `${b.key}: [${b.domain}] ${b.label}. ${b.question}`).join("\n")}`,
       },
     ],
-  });
+  }));
 
   const visitText = (turn?: number) => msgs.filter((m) => m.speaker === "student" && (!turn || m.turn === turn)).map((m) => m.text);
   const sources: { key: string; label: (turn?: number) => string; texts: (turn?: number) => string[] }[] = [
@@ -309,7 +319,7 @@ ${defs.map((b) => `${b.key}: [${b.domain}] ${b.label}. ${b.question}`).join("\n"
   const results = arr<{ key: string; observed: Observed; source: string; turn?: number; quote: string; feedback: string }>(raw.behaviours);
   const rest: BehaviourResult[] = defs.map((b) => {
     const r = results.find((x) => x.key === b.key);
-    if (!r) return { key: b.key, observed: "no", location: "", quote: "", verified: false, feedback: "Not evaluated." };
+    if (!r) return { key: b.key, observed: "no", location: "", quote: "", verified: false, feedback: "Could not be evaluated automatically this time." };
     const loc = r.quote ? locate(r.source, r.turn, r.quote) : null;
     const c = check(r.observed, r.quote, !!loc, r.feedback || "", bestOverlap(r.quote || "", everything) >= 0.6);
     const fallback = sources.find((s) => s.key === r.source)?.label(r.source === "visit" ? r.turn : undefined) || "";
