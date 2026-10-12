@@ -79,6 +79,7 @@ export default function AssignmentBuilder({
   journeys,
   professionNames,
   initial,
+  preselectedCaseId,
 }: {
   courseId: string;
   courseProfession: string | null;
@@ -86,13 +87,14 @@ export default function AssignmentBuilder({
   journeys: { id: string; title: string }[];
   professionNames: Record<string, string>;
   initial?: BuilderInitial;
+  preselectedCaseId?: string;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initial?.title || "");
   const [instructions, setInstructions] = useState(initial?.instructions || "");
   const [type, setType] = useState<AssignmentType>(initial?.type || "homework");
   const [target, setTarget] = useState<"cases" | "journey">(initial?.journeyId ? "journey" : "cases");
-  const [caseIds, setCaseIds] = useState<string[]>(initial?.journeyId ? [] : initial?.caseIds || []);
+  const [caseIds, setCaseIds] = useState<string[]>(initial?.journeyId ? [] : initial?.caseIds || (preselectedCaseId ? [preselectedCaseId] : []));
   const [journeyId, setJourneyId] = useState(initial?.journeyId || "");
   const [s, setS] = useState<AssignmentSettings>(initial?.settings || defaultSettings("homework"));
   const [due, setDue] = useState("");
@@ -105,7 +107,7 @@ export default function AssignmentBuilder({
   const [guideError, setGuideError] = useState("");
 
   const anyForCourse = !!courseProfession && cases.some((c) => c.professions.includes(courseProfession));
-  const [prof, setProf] = useState(anyForCourse ? courseProfession! : "");
+  const [prof, setProf] = useState(anyForCourse && (!preselectedCaseId || cases.find(c => c.id === preselectedCaseId)?.professions.includes(courseProfession!)) ? courseProfession! : "");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -355,7 +357,6 @@ export default function AssignmentBuilder({
                               <Badge tone="teal">
                                 Level {c.difficulty} {LEVEL_NAMES[c.difficulty]}
                               </Badge>
-                              {c.aiDraft && <Badge tone="amber">AI draft, not reviewed</Badge>}
                               <span>{c.professions.map((p) => professionNames[p] || p).join(", ")}</span>
                               {c.encounterType && <span>· {c.encounterType}</span>}
                             </div>

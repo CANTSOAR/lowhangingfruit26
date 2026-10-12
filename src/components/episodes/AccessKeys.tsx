@@ -12,6 +12,7 @@ interface Key {
 
 /** Personal keys for the episode API and the MCP endpoint. A new key is shown once. */
 export default function AccessKeys({ origin }: { origin: string }) {
+  const [connections, setConnections] = useState<{id:string;scopes:string;expires_at:number}[]>([]);
   const [keys, setKeys] = useState<Key[]>([]);
   const [label, setLabel] = useState("");
   const [fresh, setFresh] = useState<string | null>(null);
@@ -21,6 +22,7 @@ export default function AccessKeys({ origin }: { origin: string }) {
       .then((j) => setKeys(j.keys || []));
   useEffect(() => {
     load();
+    fetch("/api/oauth/connections").then(r=>r.json()).then(j=>setConnections(j.connections||[]));
   }, []);
   async function create() {
     const j = await (await fetch("/api/keys", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: label || "Assistant" }) })).json();
@@ -36,8 +38,19 @@ export default function AccessKeys({ origin }: { origin: string }) {
   return (
     <div className="space-y-3 text-sm">
       <p className="text-slate-600">
-        Connect an AI assistant or a script to your episodes. The MCP endpoint offers four tools (search episodes, read an episode, list patients, read a patient record) and returns only what your account is allowed to see.
+        Connect ChatGPT with OAuth to read permitted records, analytics, and feedback. Faculty can also grant patient editing and faculty-note permissions. Personal keys below remain read-only.
       </p>
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-2">
+        <h3 className="font-semibold">Connect ChatGPT</h3>
+        <p>In ChatGPT, add a custom MCP server with this URL and choose OAuth:</p>
+        <code className="block break-all">{origin}/api/mcp</code>
+        <p className="text-xs">Sign in to Poscere, then choose the permissions to grant. Students have read-only access; faculty editing is optional.</p>
+      </div>
+      {connections.map(c=><div key={c.id} className="flex items-center justify-between gap-4 rounded-xl border p-4">
+        <div><strong>ChatGPT connection</strong><p className="text-xs text-slate-600">{c.scopes.split(" ").join(" · ")} · expires {new Date(c.expires_at*1000).toLocaleDateString()}</p></div>
+        <button className="text-rose-700" onClick={async()=>{const r=await fetch("/api/oauth/connections",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:c.id})});if(r.ok)setConnections(items=>items.filter(i=>i.id!==c.id));}}>Revoke access</button>
+      </div>)}
+      <h3 className="pt-3 font-semibold">Read-only personal keys</h3>
       <div className="flex gap-2">
         <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="What is this key for? e.g. Claude Desktop" className="max-w-xs" />
         <Button onClick={create} variant="secondary">

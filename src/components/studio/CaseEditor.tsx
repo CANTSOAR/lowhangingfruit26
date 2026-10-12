@@ -454,7 +454,7 @@ export default function CaseEditor({
             <div>
               <p className="font-medium">The guide has drafted this patient. It is yours to correct.</p>
               <p className="mt-0.5 text-sm">
-                It stays labeled &ldquo;AI-drafted, not faculty-reviewed&rdquo; until you mark it reviewed. A sensible order: read Facts and Documents (what students can discover and when), run the consistency check, try a test visit, then publish. Type a request to the guide on the right
+                Faculty review is tracked separately from publication. A sensible order: read Facts and Documents (what students can discover and when), run the consistency check, try a test visit, then publish. Type a request to the guide on the right
                 for any change you would rather describe than make by hand.
               </p>
             </div>
@@ -563,8 +563,8 @@ export default function CaseEditor({
               <label className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
                 <input type="checkbox" className="mt-0.5" checked={gateReviewed} onChange={(e) => setGateReviewed(e.target.checked)} />
                 <span>
-                  I have reviewed the clinical content of this AI-drafted patient. Mark it as faculty-reviewed.
-                  <span className="block text-xs opacity-80">If you leave this unticked it is published with the label &ldquo;AI-drafted, not faculty-reviewed&rdquo;.</span>
+                  I have reviewed the clinical content of this patient. Mark it as faculty-reviewed.
+                  <span className="block text-xs opacity-80">If you leave this unticked, its faculty review remains incomplete.</span>
                 </span>
               </label>
             )}

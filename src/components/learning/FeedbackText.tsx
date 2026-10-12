@@ -71,7 +71,7 @@ export default function FeedbackText({
             {content}
           </mark>
         ) : part.bold ? (
-          <strong key={i}>{content}</strong>
+          <strong key={i} className="generated-highlight rounded px-0.5">{content}</strong>
         ) : (
           <Fragment key={i}>{content}</Fragment>
         );

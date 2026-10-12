@@ -29,6 +29,7 @@ export interface EpisodeQuery {
   /** Profession id or name contains, e.g. "nursing". */
   role?: string;
   caseId?: string;
+  participantId?: string;
   /** Words to find in the transcript or write-up. */
   text?: string;
   status?: string;
@@ -130,6 +131,7 @@ export function searchEpisodes(user: User, q: EpisodeQuery): EpisodeSummary[] {
   if (q.participant?.trim())
     (where.push("(u.name LIKE ? OR u.email LIKE ?)"),
       params.push(like(q.participant), like(q.participant)));
+  if (q.participantId) (where.push("e.user_id = ?"), params.push(q.participantId));
   if (q.caseId) (where.push("e.case_id = ?"), params.push(q.caseId));
   if (q.status) (where.push("e.status = ?"), params.push(q.status));
   if (q.role?.trim())
@@ -276,7 +278,8 @@ export function listPatients(user: User, name?: string) {
     status: string;
     profile: string;
   }>(
-    `SELECT id, title, status, profile FROM cases WHERE status ${isFaculty(user) ? "!= 'archived'" : "= 'published'"} ${name?.trim() ? "AND json_extract(profile, '$.patient.name') LIKE ?" : ""} ORDER BY title LIMIT 200`,
+    `SELECT id, title, status, profile FROM cases WHERE status ${isFaculty(user) ? "!= 'archived'" : "= 'published'"} ${isFaculty(user) && user.role !== "admin" ? "AND (status = 'published' OR owner_id IS NULL OR owner_id = ?)" : ""} ${name?.trim() ? "AND json_extract(profile, '$.patient.name') LIKE ?" : ""} ORDER BY title LIMIT 200`,
+    ...(isFaculty(user) && user.role !== "admin" ? [user.id] : []),
     ...(name?.trim() ? [`%${name.trim()}%`] : []),
   );
   return rows.map((r) => {
@@ -296,13 +299,16 @@ export function listPatients(user: User, name?: string) {
 }
 
 export function getPatientRecord(user: User, caseId: string) {
-  const row = get<{ profile: string; status: string }>(
-    "SELECT profile, status FROM cases WHERE id = ?",
+  const row = get<{ profile: string; status: string; owner_id: string | null }>(
+    "SELECT profile, status, owner_id FROM cases WHERE id = ?",
     caseId,
   );
   if (!row) return null;
   const c = parse<CaseProfile>(row.profile, {} as CaseProfile);
-  if (isFaculty(user)) return { caseId, status: row.status, record: c };
+  if (isFaculty(user)) {
+    if (user.role !== "admin" && row.status !== "published" && row.owner_id && row.owner_id !== user.id) return null;
+    return { caseId, status: row.status, record: c };
+  }
   if (row.status !== "published") return null;
   // Students get only what they would see before asking a single question.
   return {
